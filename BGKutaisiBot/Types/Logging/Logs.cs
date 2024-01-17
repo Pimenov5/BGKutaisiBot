@@ -14,5 +14,10 @@
 		}
 		public void AddError(Exception e) => this.Add(new ErrorLog(e), true);
 		public void Add(string text, bool writeConsole = false) => this.Add(new Log(text), writeConsole);
+		public IEnumerable<Log> ToEnumerable() => _logs;
+
+		public int Count => _logs.Count;
+		public Log First => _logs.First();
+		public Log Last => _logs.Last();
 	}
 }
