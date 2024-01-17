@@ -1,4 +1,6 @@
-﻿using BGKutaisiBot.UI.Commands;
+﻿using BGKutaisiBot.Types.Logging;
+using BGKutaisiBot.UI.Commands;
+using System.Text;
 using Telegram.Bot;
 
 namespace BGKutaisiBot.UI
@@ -17,6 +19,10 @@ namespace BGKutaisiBot.UI
 			_delegates.TryGetValue((uint)args.Length, out Func<string[], Task>? func);
 			if (func is null)
 				return false;
+
+			StringBuilder stringBuilder = new();
+			Array.ForEach(args, (string arg) => stringBuilder.Append($"{arg} "));
+			Logs.Instance.Add($"{this.GetType().Name} {stringBuilder.ToString().TrimEnd()}");
 
 			await func.Invoke(args);
 			return true;
