@@ -1,7 +1,5 @@
 ﻿using BGKutaisiBot.Types;
-using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.UI.Commands
@@ -20,11 +18,9 @@ namespace BGKutaisiBot.UI.Commands
 
 			async Task Function(string[] args)
 			{
-				Message message = await this.BotClient.SendTextMessageAsync(args[0], string.Format(TEXT_MESSAGE, DateTime.Now.ToString("dMMMMyyyy"),
-					Configuration.Instance.Notice.FaqMessageId, args.Length == 1 ? "" : $"и открытый [опрос по играм](t.me/bg\\_kutaisi/{args[1]}) "),
-					parseMode: ParseMode.MarkdownV2) ?? throw new NullReferenceException("Не удалось отправить сообщение");
-
-				Logs.Instance.Add($"Сообщение (ID {message.MessageId}) отправлено в @{message.Chat.Username}", true);
+				await this.SendTextMessageAsync(args[0], new TextMessage(string.Format(TEXT_MESSAGE, DateTime.Now.ToString("dMMMMyyyy"), Configuration.Instance.Notice.FaqMessageId,
+					args.Length == 1 ? "" : $"и открытый [опрос по играм](t.me/bg\\_kutaisi/{args[1]}) ")) 
+					{ ParseMode = ParseMode.MarkdownV2 });
 			}
 
 			this.Add(1, Function);
