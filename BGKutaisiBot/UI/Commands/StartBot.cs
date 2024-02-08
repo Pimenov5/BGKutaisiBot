@@ -30,7 +30,7 @@ namespace BGKutaisiBot.UI.Commands
 						return;
 
 					long chatId = message.Chat.Id;
-					Logs.Instance.Add($"@{message?.From?.Username}: {(message?.Text ?? $"[{message?.Type.ToString()}]")}", System.Diagnostics.Debugger.IsAttached);
+					Logs.Instance.Add($"@{message?.From?.Username}: {(message?.Text ?? $"[{message?.Type.ToString()}]")}");
 
 					if (message?.Type != Telegram.Bot.Types.Enums.MessageType.ChatMemberLeft)
 						await botClient.SendTextMessageAsync(chatId, "Извините, чат-бот пока не обрабатывает входящие сообщения", cancellationToken: cancellationToken);

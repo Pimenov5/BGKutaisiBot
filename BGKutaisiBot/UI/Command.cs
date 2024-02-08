@@ -22,7 +22,7 @@ namespace BGKutaisiBot.UI
 
 			StringBuilder stringBuilder = new();
 			Array.ForEach(args, (string arg) => stringBuilder.Append($"{arg} "));
-			Logs.Instance.Add($"{this.GetType().Name} {stringBuilder.ToString().TrimEnd()}");
+			Logs.Instance.Add($"{this.GetType().Name} {stringBuilder.ToString().TrimEnd()}", false);
 
 			await func.Invoke(args);
 			return true;
