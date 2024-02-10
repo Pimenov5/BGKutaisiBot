@@ -8,6 +8,7 @@ namespace BGKutaisiBot.UI.Commands
 {
 	internal class StartBot : BotCommand
 	{
+		readonly Dictionary<long, Types.Command> _chats = [];
 		readonly Lazy<CancellationTokenSource> _lazyCTS = new();
 
 		public StartBot(Func<ITelegramBotClient?> getBotClient, Action<ITelegramBotClient, CancellationTokenSource> onBotStarted) : base("запустить бота", getBotClient)
