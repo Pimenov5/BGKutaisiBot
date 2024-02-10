@@ -22,7 +22,9 @@ namespace BGKutaisiBot.Types
 		public override string ToString()
 		{
 			int length = this.Text.Length;
-			string result = this.Text.Replace("\n", "\\n").Replace("\r", "\\r").Remove(70);
+			string result = this.Text.Replace("\n", "\\n").Replace("\r", "\\r");
+			const int MAX_LENGTH = 60;
+			result = result.Length > MAX_LENGTH ? result.Remove(MAX_LENGTH) : result;
 			return $"{result}{(result.Length < length ? " ..." : string.Empty)}";
 		}
 	}
