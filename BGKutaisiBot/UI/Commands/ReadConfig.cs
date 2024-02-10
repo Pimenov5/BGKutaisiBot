@@ -10,7 +10,7 @@ namespace BGKutaisiBot.UI.Commands
 		{
 			static Task Function(string[] args) 
 			{
-				using FileStream fileStream = new(args[0], FileMode.Open);
+				using FileStream fileStream = new FileInfo(args[0]).OpenRead();
 				Configuration.FromStream(fileStream);
 				Logs.Instance.Add($"Конфигурационный файл {args[0]} прочитан", true);
 				return Task.CompletedTask;
