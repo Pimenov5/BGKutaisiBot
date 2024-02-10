@@ -19,7 +19,7 @@ namespace BGKutaisiBot.UI
 				textMessage.AllowSendingWithoutReply, textMessage.ReplyMarkup, textMessage.CancellationToken)
 				?? throw new NullReferenceException($"Не удалось отправить {chatId} сообщение {textMessage}");
 
-			Logs.Instance.Add($"В @{message.Chat.Username} отправлено сообщение {textMessage}");
+			Logs.Instance.Add($"В @{message.Chat.Username} отправлено сообщение (ID {message.MessageId}):  {textMessage}");
 			return message;
 		}
 	}
