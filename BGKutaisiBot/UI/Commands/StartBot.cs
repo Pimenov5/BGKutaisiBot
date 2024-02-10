@@ -96,7 +96,9 @@ namespace BGKutaisiBot.UI.Commands
 				}
 			}
 
-			this.Add(0, (args) => Function([Configuration.Instance.BotToken]));
+			string? telegramBotToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
+			if (!string.IsNullOrEmpty(telegramBotToken))
+				this.Add(0, (args) => Function([telegramBotToken]));
 			this.Add(1, Function);
 		} 
 	}

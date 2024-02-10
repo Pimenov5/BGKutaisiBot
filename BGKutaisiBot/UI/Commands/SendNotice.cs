@@ -18,8 +18,8 @@ namespace BGKutaisiBot.UI.Commands
 
 			async Task Function(string[] args)
 			{
-				await this.SendTextMessageAsync(args[0], new TextMessage(string.Format(TEXT_MESSAGE, DateTime.Now.ToString("dMMMMyyyy"), Configuration.Instance.Notice.FaqMessageId,
-					args.Length == 1 ? "" : $"и открытый [опрос по играм](t.me/bg\\_kutaisi/{args[1]}) ")) 
+				await this.SendTextMessageAsync(args[0], new TextMessage(string.Format(TEXT_MESSAGE, DateTime.Now.ToString("dMMMMyyyy"),
+					Environment.GetEnvironmentVariable("NOTICE_FAQ_MESSAGE_ID") ?? "0", args.Length == 1 ? "" : $"и открытый [опрос по играм](t.me/bg\\_kutaisi/{args[1]}) ")) 
 					{ ParseMode = ParseMode.MarkdownV2 });
 			}
 
