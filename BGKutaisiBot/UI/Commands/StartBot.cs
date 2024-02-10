@@ -18,7 +18,10 @@ namespace BGKutaisiBot.UI.Commands
 				if (this.GetBotClient() is not null)
 					throw new InvalidOperationException("Бот уже был запущен");
 
-				ITelegramBotClient botClient = new TelegramBotClient(args[0]);
+				TelegramBotClient botClient = new(args[0]);
+				if (!await botClient.TestApiAsync(_lazyCTS.Value.Token))
+					throw new ArgumentException($"Токен {args[0]} бота не прошёл проверку API");
+
 				botClient.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, _lazyCTS.Value.Token);
 
 				User user = await botClient.GetMeAsync();
