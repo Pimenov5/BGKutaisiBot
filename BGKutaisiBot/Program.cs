@@ -20,9 +20,16 @@ namespace BGKutaisiBot
 					if (start)
 					{
 						start = false;
+						switch (args.Length)
+						{
+							case 0:
 						await uiCommands.TryExecuteAsync("help", []);
-						Console.WriteLine($"readconfig {ReadConfig.FILE_NAME}");
-						await uiCommands.TryExecuteAsync("readconfig", []);
+								break;
+							case <= 2 when args[0].Equals(typeof(StartBot).Name, StringComparison.OrdinalIgnoreCase):
+								Console.WriteLine($"{typeof(StartBot).Name.ToLower()}");
+								await uiCommands.TryExecuteAsync(typeof(StartBot).Name, args.Length == 1 ? [] : [args[1]]);
+								break;
+						}
 					}
 
 					string? line = Console.ReadLine()?.Trim();
