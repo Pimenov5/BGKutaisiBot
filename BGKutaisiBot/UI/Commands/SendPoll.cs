@@ -30,7 +30,8 @@ namespace BGKutaisiBot.UI.Commands
 				foreach (CustomCollectionGameInfo item in collectionGames)
 				{
 					string comment = string.IsNullOrEmpty(item.Comment) ? string.Empty : item.Comment;
-					if (string.IsNullOrEmpty(comment) || !comment.StartsWith(Configuration.Instance.Poll.IgnoreChar))
+					string? ignoreChar = Environment.GetEnvironmentVariable("POLL_IGNORE_CHAR");
+					if (string.IsNullOrEmpty(comment) || ignoreChar is not null && !comment.StartsWith(ignoreChar))
 						if (string.IsNullOrEmpty(item.Game.Title))
 							throw new NullReferenceException($"Не удалось получить имя игры {item.Game.TeseraId}");
 						else
@@ -44,7 +45,9 @@ namespace BGKutaisiBot.UI.Commands
 				Logs.Instance.Add($"Опрос (ID {pollMessage.MessageId}) отправлен в @{pollMessage.Chat.Username}", true);
 			}
 
-			this.Add(1, (string[] args) => Function(args.Append(Configuration.Instance.Poll.CollectionId.ToString()).ToArray()));
+			string? pollCollectionId = Environment.GetEnvironmentVariable("POLL_COLLECTION_ID");
+			if (!string.IsNullOrEmpty(pollCollectionId))
+				this.Add(1, (string[] args) => Function(args.Append(pollCollectionId).ToArray()));
 			this.Add(2, Function);
 		}
 	}

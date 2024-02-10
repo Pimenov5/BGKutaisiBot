@@ -20,9 +20,16 @@ namespace BGKutaisiBot
 					if (start)
 					{
 						start = false;
-						await uiCommands.TryExecuteAsync("help", []);
-						Console.WriteLine($"readconfig {ReadConfig.FILE_NAME}");
-						await uiCommands.TryExecuteAsync("readconfig", []);
+						switch (args.Length)
+						{
+							case 0:
+								await uiCommands.TryExecuteAsync("help", []);
+								break;
+							case <= 2 when args[0].Equals(typeof(StartBot).Name, StringComparison.OrdinalIgnoreCase):
+								Console.WriteLine($"{typeof(StartBot).Name.ToLower()}");
+								await uiCommands.TryExecuteAsync(typeof(StartBot).Name, args.Length == 1 ? [] : [args[1]]);
+								break;
+						}
 					}
 
 					string? line = Console.ReadLine()?.Trim();
@@ -35,10 +42,11 @@ namespace BGKutaisiBot
 							Array.Copy(lineSplitted, 1, lineSplitted, 0, lineSplitted.Length - 1);
 							Array.Resize<string>(ref lineSplitted, lineSplitted.Length - 1);
 
-							if (lineSplitted.Length > 0 && !string.IsNullOrEmpty(Configuration.Instance.TestChatIdAlias))
+							string? testChatIdAlias = Environment.GetEnvironmentVariable("TEST_CHAT_ID_ALIAS");
+							if (lineSplitted.Length > 0 && !string.IsNullOrEmpty(testChatIdAlias))
 								for (int i = 0; i < lineSplitted.Length; i++)
-									if (lineSplitted[i] == Configuration.Instance.TestChatIdAlias)
-										lineSplitted[i] = Configuration.Instance.TestChatId?.ToString() ?? lineSplitted[i];
+									if (lineSplitted[i] == testChatIdAlias)
+										lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID")?.ToString() ?? lineSplitted[i];
 
 							await uiCommands.TryExecuteAsync(commandName, lineSplitted);
 						}

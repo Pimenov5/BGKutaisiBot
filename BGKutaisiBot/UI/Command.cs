@@ -56,7 +56,6 @@ namespace BGKutaisiBot.UI
 			this.Add(new SendPoll(getBotClient));
 			this.Add(new SendNotice(getBotClient));
 			this.Add(new DeleteMessage(getBotClient));
-			this.Add(new ReadConfig());
 			this.Add(new SaveLogs());
 		}
 		public bool ContainsCommand(string commandName) => _commands.ContainsKey(commandName.ToLower());
