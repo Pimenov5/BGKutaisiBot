@@ -1,5 +1,6 @@
 ﻿using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Logging;
+using System.Reflection;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -33,30 +34,42 @@ namespace BGKutaisiBot.UI.Commands
 					if (update.CallbackQuery is { } callbackQuery && callbackQuery.Data is { } callbackData)
 					{
 						Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
+						await this.BotClient.SendChatActionAsync(callbackQuery.From.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
 						Type? type = Types.Command.TryParseCallbackData(callbackData, out KeyValuePair<string, string>? parsedCallbackData)
 							? this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{parsedCallbackData?.Key}") : null;
-						object? response = type?.GetMethod(parsedCallbackData?.Value)?.Invoke(null, [callbackQuery.Message?.Text]);
+						MethodInfo? methodInfo = type?.GetMethod(parsedCallbackData?.Value);
+
+						object? response = methodInfo?.Invoke(null, methodInfo.GetParameters().Length == 0 ? [] : [callbackQuery.Message?.Text]);
 						if (response is TextMessage textMessage)
 						{
-							await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+							try
+							{
+								await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+							}
+							catch (Exception e)
+							{
+								Logs.Instance.AddError(e);
+							}
+
 							await this.SendTextMessageAsync(callbackQuery.From.Id, textMessage);
 						}
 						else
 							await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id, $"Не удалось обработать нажатие \"{callbackData}\"", true);
 					}
 
-					if (update.Message is not { } message)
+					if (update.Message is not { } message || message?.Text is not { } messageText)
+						return;
+
+					messageText = messageText.Trim();
+					Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message?.Type.ToString()}]")}");
+					if (message?.Type == Telegram.Bot.Types.Enums.MessageType.ChatMemberLeft)
 						return;
 
 					long chatId = message.Chat.Id;
-					Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message?.Type.ToString()}]")}");
-
-					if (message?.Type == Telegram.Bot.Types.Enums.MessageType.ChatMemberLeft || message?.Text is not { } messageText)
-						return;
+					await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
 					Types.Command? command = null;
-					messageText = messageText.Trim();
 					if (messageText.StartsWith('/'))
 					{
 						string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
@@ -69,7 +82,7 @@ namespace BGKutaisiBot.UI.Commands
 						}
 
 						Type? type = this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{commandName}", false, true);
-						if (type is null)
+						if (type is null || !type.IsSubclassOf(typeof(Types.Command)))
 						{
 							await this.BotClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой");
 							return;
