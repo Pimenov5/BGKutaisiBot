@@ -7,7 +7,6 @@ using Tesera.Models;
 using Tesera.Types.Enums;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
-using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
@@ -126,7 +125,7 @@ namespace BGKutaisiBot.Commands
 				_ => "коллекциях:" + string.Concat(users.ConvertAll<string>((UserFullInfo user) => " " + UserToString(user) + (user == users.Last() ? string.Empty : ",")))
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
-			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login] + $"({user.Name})")
+			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login] + $" ({user.Name})")
 				{ CallbackData = GetCallbackData(typeof(Collection), "GetCollection", [logins[user.Login], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
