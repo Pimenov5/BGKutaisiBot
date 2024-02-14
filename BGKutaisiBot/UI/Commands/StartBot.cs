@@ -3,6 +3,7 @@ using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using System.Reflection;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
@@ -44,18 +45,29 @@ namespace BGKutaisiBot.UI.Commands
 						Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
 						await this.BotClient.SendChatActionAsync(callbackQuery.From.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
-						Type? type = Types.BotCommand.TryParseCallbackData(callbackData, out KeyValuePair<string, string>? parsedCallbackData)
-							? this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{parsedCallbackData?.Key}") : null;
-						MethodInfo? methodInfo = type?.GetMethod(parsedCallbackData?.Value);
+						Type? type = Types.BotCommand.TryParseCallbackData(callbackData, out string? typeName, out string? methodName, out string[]? args)
+							? this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{typeName}") : null;
+						MethodInfo? methodInfo = methodName is null ? null : type?.GetMethod(methodName);
 
-						object? response = methodInfo?.Invoke(null, methodInfo.GetParameters().Length == 0 ? [] : [callbackQuery.Message?.Text]);
+						string? reason = null;
+						object? response = null;
+						try
+						{
+							response = methodInfo?.Invoke(null, args is not null && args.Length != 0 ? args : methodInfo.GetParameters().Length == 1 ? [callbackQuery.Message?.Text] : null);
+						}
+						catch (CancelException e)
+						{
+							reason = e.Reason;
+						}
+
+
 						if (response is TextMessage textMessage)
 						{
 							try
 							{
 								await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id);
 							}
-							catch (Exception e)
+							catch (ApiRequestException e)
 							{
 								Logs.Instance.AddError(e);
 							}
@@ -63,7 +75,12 @@ namespace BGKutaisiBot.UI.Commands
 							await this.SendTextMessageAsync(callbackQuery.From.Id, textMessage);
 						}
 						else
-							await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id, $"Не удалось обработать нажатие \"{callbackData}\"", true);
+						{
+							if (type is null || methodInfo is null)
+								reason = "не удалось выделить или найти обработчик";
+							await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id,
+								$"Отсутствует результат нажатия \"{callbackData}\"{(reason is null ? string.Empty : ". Причина:" + reason)}", true);
+						}
 					}
 
 					if (update.Message is not { } message || message?.Text is not { } messageText)

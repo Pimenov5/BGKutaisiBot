@@ -7,44 +7,32 @@ using Tesera.Models;
 using Tesera.Types.Enums;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
+using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class Collection : BotCommand
+	internal class Collection : Types.BotCommand
 	{
 		enum SortBy { Titles, Players, Playtimes, Ratings }
-		const string USER_ALIAS_VARIABLE_NAME_PREFIX = "COLLECTION_USER_ALIAS_";
+		static readonly Lazy<TeseraClient> _lazyTeseraClient = new();
 
-		static readonly Lazy<HttpClient> _lazyHttpClient = new();
-		static TextMessage GetTextMessage(string environmentVariableName, SortBy sortBy)
+		static TextMessage GetTextMessage(string userLogin, SortBy sortBy)
 		{
-			string? collectionUri = Environment.GetEnvironmentVariable(environmentVariableName);
-			if (string.IsNullOrWhiteSpace(collectionUri))
-				return new TextMessage($"В переменных среды отсутствует значение для \"{environmentVariableName}\"");
-
-			Regex regex = new("tesera.ru/user/(\\w+)/games/owns");
-			Match? match = regex.IsMatch(collectionUri) ? regex.Match(collectionUri) : null;
-			GroupCollection? groupCollection = match?.Groups;
-			string? userAlias = groupCollection?.Count == 2 ? groupCollection[1].Value : null;
-			if (string.IsNullOrEmpty(userAlias))
-				return new TextMessage($"Не удалось выделить алиас пользователя из ссылки {collectionUri}");
-
-			TeseraClient teseraClient = new(_lazyHttpClient.Value);
-			var gamesInfo = teseraClient.Get<IEnumerable<CustomCollectionGameInfo>>(new Tesera.API.Collections.Base(CollectionType.Own, userAlias, GamesType.All));
+			var gamesInfo = _lazyTeseraClient.Value.Get<IEnumerable<CustomCollectionGameInfo>>(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.All));
 			if (gamesInfo is null)
-				return new TextMessage($"Не удалось получить список игр из коллекции по ссылке {collectionUri}");
+				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
 			foreach (CustomCollectionGameInfo item in gamesInfo)
 				if (!item.Game.IsAddition && !string.IsNullOrEmpty(item.Game.Alias))
 				{
-					GameInfoResponse? game = teseraClient.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
+					GameInfoResponse? game = _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
 					if (game is not null)
 						games.Add(game.Game);
 				}
 
 			if (games.Count == 0)
-				return new TextMessage($"Не удалось получить информацию об играх из коллекции по ссылке {collectionUri}");
+				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить информацию об играх из коллекции пользователя {userLogin}");
 
 			games.Sort((GameInfo x, GameInfo y) =>
 			{
@@ -65,7 +53,7 @@ namespace BGKutaisiBot.Commands
 			});
 
 			int i = 0;
-			regex = new("(\\.|-|\\(|\\)|!|\\+)");
+			Regex regex = new("(\\.|-|\\(|\\)|!|\\+)");
 			StringBuilder stringBuilder = new();
 			foreach (GameInfo game in games)
 				if (!string.IsNullOrEmpty(game.Title))
@@ -82,58 +70,65 @@ namespace BGKutaisiBot.Commands
 						+ $"{(game.PlaytimeMin == 0 ? string.Empty : $"  ⏳{(game.PlaytimeMin == game.PlaytimeMax || game.PlaytimeMax == 0 ? game.PlaytimeMin : $"{game.PlaytimeMin}\\-{game.PlaytimeMax}")}")}");
 				}
 
-			string methodNamePrefix = environmentVariableName.Remove(environmentVariableName.IndexOf('_')).ToLower();
-			methodNamePrefix = $"{char.ToUpper(methodNamePrefix.First())}{methodNamePrefix.Remove(0, 1)}";
-
 			SortBy[] values = Enum.GetValues<SortBy>();
 			List<InlineKeyboardButton> buttons = new() { Capacity = values.Length - 1 };
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
 				{
-					string callbackData = BotCommand.GetCallbackData(typeof(Collection), $"Get{methodNamePrefix}{Enum.GetName(values[i])}");
+					string callbackData = Types.BotCommand.GetCallbackData(typeof(Collection), "GetCollection", [userLogin, Enum.GetName(values[i])]);
 					buttons.Add(new InlineKeyboardButton(values[i] switch { SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" })
 						{ CallbackData = callbackData });
 				}
 
 			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
 		}
+		
+		public static TextMessage GetCollection(string userLogin, string value)
+		{
+			if (!Enum.TryParse(typeof(SortBy), value, out object? result))
+				throw new CancelException(CancelException.Cancel.Current, $"не удалось выделить тип сортировки из \"{value}\"");
 
-		/*
-		public static TextMessage GetFirstTitles() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Titles);
-		public static TextMessage GetSecondTitles() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Titles);
-		public static TextMessage GetFirstPlayers() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Players);
-		public static TextMessage GetSecondPlayers() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Players);
-		public static TextMessage GetFirstPlaytimes() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Playtimes);
-		public static TextMessage GetSecondPlaytimes() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Playtimes);
-		public static TextMessage GetFirstRatings() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Ratings);
-		public static TextMessage GetSecondRatings() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Ratings);
-		*/
+			return GetTextMessage(userLogin, (SortBy)result);			
+		}
 
 		public static string Description { get => "Коллекции настольных игр для игротек"; }
 		public override TextMessage Respond(string? messageText, out bool finished)
 		{
 			finished = true;
-			HashSet<string> users = [];
+			Dictionary<string, string> logins = [];
+			const string USER_ALIAS_VARIABLE_NAME_PREFIX = "COLLECTION_OWNER_LOGIN_";
+
 			int i = 1;
 			while (true)
-			{
-				string? value = Environment.GetEnvironmentVariable(USER_ALIAS_VARIABLE_NAME_PREFIX + i++);
-				if (string.IsNullOrEmpty(value))
-					break;
+				if (Environment.GetEnvironmentVariable(USER_ALIAS_VARIABLE_NAME_PREFIX + i++) is { } value)
+					logins.Add(value.ToLower(), value);
 				else
-					users.Add(value);
-			}
+					break;
 
-			if (users.Count == 0)
+			if (logins.Count == 0)
 				throw new CancelException(CancelException.Cancel.Current, "в переменных среды отсутствуют логины пользователей Tesera.ru");
 
+			List<UserFullInfo> users = [];
+			foreach (string login in logins.Keys)
+				if (_lazyTeseraClient.Value.Get<UserFullInfoResponse>(new Tesera.API.User(login))?.User is { } user)
+					users.Add(user);
 
+			if (users.Count == 0)
+				throw new CancelException(CancelException.Cancel.Current, "не удалось получить данные пользователей Tesera.ru");
 
-			return new TextMessage($"Настольные игры для игротек хранятся в двух разных коллекциях: первая — [Васи](), вторая — [Саши и Антона]()\\."
-				+ $"\nЧью коллекцию вы хотите посмотреть?") { ParseMode = ParseMode.MarkdownV2,
-				ReplyMarkup = new InlineKeyboardMarkup([new InlineKeyboardButton("Васи") { CallbackData = BotCommand.GetCallbackData(typeof(Collection), "GetFirstTitles") },
-					new InlineKeyboardButton("Саши и Антона") { CallbackData = BotCommand.GetCallbackData(typeof(Collection), "GetSecondTitles") }])
-			}; 
+			const string COLLECTION_URL_FORMAT = "tesera.ru/user/{0}/games/owns/";
+			string UserToString(UserFullInfo user) => $"[{logins[user.Login]}]({string.Format(COLLECTION_URL_FORMAT, logins[user.Login])}) \\({user.Name}\\)";
+			string text = "Настольные игры для игротек хранятся в " + users.Count switch
+			{
+				1 => "коллекции " + UserToString(users[0]),
+				2 => $"коллекциях {UserToString(users[0])} и {UserToString(users[1])}",
+				_ => "коллекциях:" + string.Concat(users.ConvertAll<string>((UserFullInfo user) => " " + UserToString(user) + (user == users.Last() ? string.Empty : ",")))
+			} + "\\. Чью коллекцию вы хотите посмотреть?";
+
+			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login] + $"({user.Name})")
+				{ CallbackData = GetCallbackData(typeof(Collection), "GetCollection", [logins[user.Login], "Titles"]) }));
+
+			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
 		}
 	}
 }
