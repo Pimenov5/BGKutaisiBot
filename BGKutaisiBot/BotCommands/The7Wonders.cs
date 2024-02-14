@@ -45,6 +45,7 @@ namespace BGKutaisiBot.Commands
 			return GetTextMessage(names.ToArray());
 		}
 
+		public override bool IsLong => true;
 		public override TextMessage Respond(string? input, out bool finished)
 		{
 			finished = false;

@@ -92,6 +92,7 @@ namespace BGKutaisiBot.Commands
 		}
 
 		public static string Description { get => "Коллекции настольных игр для игротек"; }
+		public override bool IsLong => true;
 		public override TextMessage Respond(string? messageText, out bool finished)
 		{
 			finished = true;
