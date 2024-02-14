@@ -1,10 +1,11 @@
 ﻿using System.Text;
 using BGKutaisiBot.Types;
+using BGKutaisiBot.Types.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class The7Wonders : Command
+	internal class The7Wonders : BotCommand
 	{
 		const string NAMES_DELIMITER = " - ";
 		readonly static string[] _wondersNames = ["Alexandria", "Babylon", "Ephesos", "Gizah", "Halikarnassos", "Olympia", "Rhodos"];
@@ -37,6 +38,9 @@ namespace BGKutaisiBot.Commands
 					break;
 				names.Add(name.Remove(name.IndexOf(NAMES_DELIMITER)));
 			}
+
+			if (names.Count == 0)
+				throw new CancelException(CancelException.Cancel.Current, "не удалось выделить имя игроков");
 
 			return GetTextMessage(names.ToArray());
 		}

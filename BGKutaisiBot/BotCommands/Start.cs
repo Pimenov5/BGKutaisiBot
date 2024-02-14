@@ -3,7 +3,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class Start : Command
+	internal class Start : BotCommand
 	{
 		public override TextMessage Respond(string? input, out bool finished)
 		{
