@@ -92,10 +92,7 @@ namespace BGKutaisiBot.UI.Commands
 						return;
 
 					long chatId = message.Chat.Id;
-					await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
-
-					Types.BotCommand? command = null;
-					Types.BotCommand? prevCommand = null;
+					Types.BotCommand? command, prevCommand = null;
 					if (messageText.StartsWith('/'))
 					{
 						string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
@@ -116,6 +113,9 @@ namespace BGKutaisiBot.UI.Commands
 
 					if (_chats.TryGetValue(chatId, out command))
 					{
+						if (command.IsLong)
+							await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
+
 						bool finished = true;
 						TextMessage? response = null;
 						try 
