@@ -15,6 +15,7 @@ namespace BGKutaisiBot.Types
 				+ $"{methodInfo.Name}{(args is null ? string.Empty : $"({string.Concat(args.ToList().ConvertAll<string>((string arg) => arg + (args.Last() == arg ? string.Empty : ",")))})")}";
 		}
 
+		public virtual bool IsLong { get => false; }
 		public abstract TextMessage Respond(string? messageText, out bool finished);
 		public static bool TryParseCallbackData(string callbackData, out string? typeName, out string? methodName, out string[]? args)
 		{
