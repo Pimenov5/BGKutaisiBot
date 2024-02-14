@@ -110,7 +110,7 @@ namespace BGKutaisiBot.UI.Commands
 							string? text = e.Cancelling switch
 							{
 								CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
-								CancelException.Cancel.Current => $"Выполнение/{command.GetType().Name.ToLower()} отменено",
+								CancelException.Cancel.Current => $"Выполнение /{command.GetType().Name.ToLower()} отменено",
 								_ => null
 							};
 
