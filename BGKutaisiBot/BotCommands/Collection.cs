@@ -65,7 +65,7 @@ namespace BGKutaisiBot.Commands
 					stringBuilder.AppendLine($"{++i}\\. [{title}](tesera.ru/game/{game.Alias?.Replace("-", "\\-")})");
 					stringBuilder.AppendLine($"  {(i > 9 ? "  " : string.Empty)}"
 						+ $"{(playersCount is null ? string.Empty : $"  👥{playersCount}")}"
-						+ $"{(game.N10Rating == 0 ? string.Empty : $"  ⭐️{game.N10Rating}")}"
+						+ $"{(game.N10Rating == 0 ? string.Empty : $"  ⭐️{game.N10Rating.ToString().Replace('.', ',')}")}"
 						+ $"{(game.PlaytimeMin == 0 ? string.Empty : $"  ⏳{(game.PlaytimeMin == game.PlaytimeMax || game.PlaytimeMax == 0 ? game.PlaytimeMin : $"{game.PlaytimeMin}\\-{game.PlaytimeMax}")}")}");
 				}
 
