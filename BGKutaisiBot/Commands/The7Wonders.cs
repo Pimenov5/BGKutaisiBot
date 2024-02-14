@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 using BGKutaisiBot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -26,6 +25,7 @@ namespace BGKutaisiBot.Commands
 			};
 		}
 
+		public static string Description { get => "Рандомайзер планшетов для \"7 Чудес\""; }
 		public static TextMessage Shuffle(string messageText)
 		{
 			using StringReader stringReader = new(messageText);

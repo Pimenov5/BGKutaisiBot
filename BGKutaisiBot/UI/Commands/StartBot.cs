@@ -24,6 +24,13 @@ namespace BGKutaisiBot.UI.Commands
 				if (!await botClient.TestApiAsync(_lazyCTS.Value.Token))
 					throw new ArgumentException($"Токен {args[0]} бота не прошёл проверку API");
 
+				List<Telegram.Bot.Types.BotCommand> botCommands = [];
+				IEnumerable<Type> types = this.GetType().Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.Command)));
+				foreach (Type type in types)
+					if (type.GetProperty("Description") is { } property && property.GetValue(null) is { } propertyValue && propertyValue is string description)
+						botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
+
+				await botClient.SetMyCommandsAsync(botCommands);
 				botClient.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, _lazyCTS.Value.Token);
 
 				User user = await botClient.GetMeAsync();
