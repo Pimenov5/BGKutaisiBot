@@ -2,7 +2,7 @@
 
 namespace BGKutaisiBot.Types
 {
-	internal abstract class Command
+	internal abstract class BotCommand
 	{
 		const char CALLBACK_DATA_DELIMITER = '-';
 		private protected static string GetCallbackData(Type type, string methodName)

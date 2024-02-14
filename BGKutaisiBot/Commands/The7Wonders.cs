@@ -4,7 +4,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class The7Wonders : Command
+	internal class The7Wonders : BotCommand
 	{
 		const string NAMES_DELIMITER = " - ";
 		readonly static string[] _wondersNames = ["Alexandria", "Babylon", "Ephesos", "Gizah", "Halikarnassos", "Olympia", "Rhodos"];

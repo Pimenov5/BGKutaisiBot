@@ -10,7 +10,7 @@ namespace BGKutaisiBot.UI.Commands
 {
 	internal class StartBot : BotCommand
 	{
-		readonly Dictionary<long, Types.Command> _chats = [];
+		readonly Dictionary<long, Types.BotCommand> _chats = [];
 		readonly Lazy<CancellationTokenSource> _lazyCTS = new();
 
 		public StartBot(Func<ITelegramBotClient?> getBotClient, Action<ITelegramBotClient, CancellationTokenSource> onBotStarted) : base("запустить бота", getBotClient)
@@ -25,7 +25,7 @@ namespace BGKutaisiBot.UI.Commands
 					throw new ArgumentException($"Токен {args[0]} бота не прошёл проверку API");
 
 				List<Telegram.Bot.Types.BotCommand> botCommands = [];
-				IEnumerable<Type> types = this.GetType().Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.Command)));
+				IEnumerable<Type> types = this.GetType().Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.BotCommand)));
 				foreach (Type type in types)
 					if (type.GetProperty("Description") is { } property && property.GetValue(null) is { } propertyValue && propertyValue is string description)
 						botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
@@ -44,7 +44,7 @@ namespace BGKutaisiBot.UI.Commands
 						Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
 						await this.BotClient.SendChatActionAsync(callbackQuery.From.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
-						Type? type = Types.Command.TryParseCallbackData(callbackData, out KeyValuePair<string, string>? parsedCallbackData)
+						Type? type = Types.BotCommand.TryParseCallbackData(callbackData, out KeyValuePair<string, string>? parsedCallbackData)
 							? this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{parsedCallbackData?.Key}") : null;
 						MethodInfo? methodInfo = type?.GetMethod(parsedCallbackData?.Value);
 
@@ -77,13 +77,13 @@ namespace BGKutaisiBot.UI.Commands
 					long chatId = message.Chat.Id;
 					await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
-					Types.Command? command = null;
-					Types.Command? prevCommand = null;
+					Types.BotCommand? command = null;
+					Types.BotCommand? prevCommand = null;
 					if (messageText.StartsWith('/'))
 					{
 						string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
 						Type? type = this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{commandName}", false, true);
-						if (type is null || !type.IsSubclassOf(typeof(Types.Command)))
+						if (type is null || !type.IsSubclassOf(typeof(Types.BotCommand)))
 						{
 							await this.BotClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой");
 							return;
@@ -93,7 +93,7 @@ namespace BGKutaisiBot.UI.Commands
 						if (prevCommand is not null)
 							_chats.Remove(chatId);
 
-						_chats.Add(chatId, (Types.Command)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}")));
+						_chats.Add(chatId, (Types.BotCommand)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}")));
 						messageText = messageText.Replace($"/{commandName}", "").TrimStart();
 					}
 

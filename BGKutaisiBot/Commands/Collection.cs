@@ -6,14 +6,14 @@ using Tesera;
 using Tesera.Models;
 using Tesera.Types.Enums;
 using System.Text;
+using BGKutaisiBot.Types.Exceptions;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class Collection : Command
+	internal class Collection : BotCommand
 	{
 		enum SortBy { Titles, Players, Playtimes, Ratings }
-		const string FIRST_COLLECTION_VAR_NAME = "FIRST_COLLECTION_URI";
-		const string SECOND_COLLECTION_VAR_NAME = "SECOND_COLLECTION_URI";
+		const string USER_ALIAS_VARIABLE_NAME_PREFIX = "COLLECTION_USER_ALIAS_";
 
 		static readonly Lazy<HttpClient> _lazyHttpClient = new();
 		static TextMessage GetTextMessage(string environmentVariableName, SortBy sortBy)
@@ -90,7 +90,7 @@ namespace BGKutaisiBot.Commands
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
 				{
-					string callbackData = Command.GetCallbackData(typeof(Collection), $"Get{methodNamePrefix}{Enum.GetName(values[i])}");
+					string callbackData = BotCommand.GetCallbackData(typeof(Collection), $"Get{methodNamePrefix}{Enum.GetName(values[i])}");
 					buttons.Add(new InlineKeyboardButton(values[i] switch { SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" })
 						{ CallbackData = callbackData });
 				}
@@ -98,6 +98,7 @@ namespace BGKutaisiBot.Commands
 			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
 		}
 
+		/*
 		public static TextMessage GetFirstTitles() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Titles);
 		public static TextMessage GetSecondTitles() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Titles);
 		public static TextMessage GetFirstPlayers() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Players);
@@ -106,20 +107,32 @@ namespace BGKutaisiBot.Commands
 		public static TextMessage GetSecondPlaytimes() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Playtimes);
 		public static TextMessage GetFirstRatings() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Ratings);
 		public static TextMessage GetSecondRatings() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Ratings);
+		*/
 
 		public static string Description { get => "Коллекции настольных игр для игротек"; }
 		public override TextMessage Respond(string? messageText, out bool finished)
 		{
 			finished = true;
-			string? firstCollectionUri = Environment.GetEnvironmentVariable(FIRST_COLLECTION_VAR_NAME);
-			string? secondCollectionUri = Environment.GetEnvironmentVariable(SECOND_COLLECTION_VAR_NAME);
-			if (string.IsNullOrEmpty(firstCollectionUri) || string.IsNullOrEmpty(secondCollectionUri))
-				return new TextMessage($"В переменных среды отсутствуют ссылки: первая коллекция — {firstCollectionUri} и вторая коллекция — {secondCollectionUri}");
+			HashSet<string> users = [];
+			int i = 1;
+			while (true)
+			{
+				string? value = Environment.GetEnvironmentVariable(USER_ALIAS_VARIABLE_NAME_PREFIX + i++);
+				if (string.IsNullOrEmpty(value))
+					break;
+				else
+					users.Add(value);
+			}
 
-			return new TextMessage($"Настольные игры для игротек хранятся в двух разных коллекциях: первая — [Васи]({firstCollectionUri}), вторая — [Саши и Антона]({secondCollectionUri})\\."
+			if (users.Count == 0)
+				throw new CancelException(CancelException.Cancel.Current, "в переменных среды отсутствуют логины пользователей Tesera.ru");
+
+
+
+			return new TextMessage($"Настольные игры для игротек хранятся в двух разных коллекциях: первая — [Васи](), вторая — [Саши и Антона]()\\."
 				+ $"\nЧью коллекцию вы хотите посмотреть?") { ParseMode = ParseMode.MarkdownV2,
-				ReplyMarkup = new InlineKeyboardMarkup([new InlineKeyboardButton("Васи") { CallbackData = Command.GetCallbackData(typeof(Collection), "GetFirstTitles") },
-					new InlineKeyboardButton("Саши и Антона") { CallbackData = Command.GetCallbackData(typeof(Collection), "GetSecondTitles") }])
+				ReplyMarkup = new InlineKeyboardMarkup([new InlineKeyboardButton("Васи") { CallbackData = BotCommand.GetCallbackData(typeof(Collection), "GetFirstTitles") },
+					new InlineKeyboardButton("Саши и Антона") { CallbackData = BotCommand.GetCallbackData(typeof(Collection), "GetSecondTitles") }])
 			}; 
 		}
 	}
