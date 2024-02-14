@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BGKutaisiBot.Types;
+using BGKutaisiBot.Types.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
@@ -37,6 +38,9 @@ namespace BGKutaisiBot.Commands
 					break;
 				names.Add(name.Remove(name.IndexOf(NAMES_DELIMITER)));
 			}
+
+			if (names.Count == 0)
+				throw new CancelException(CancelException.Cancel.Current, "не удалось выделить имя игроков");
 
 			return GetTextMessage(names.ToArray());
 		}
