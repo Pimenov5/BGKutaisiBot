@@ -107,6 +107,7 @@ namespace BGKutaisiBot.Commands
 		public static TextMessage GetFirstRatings() => GetTextMessage(FIRST_COLLECTION_VAR_NAME, SortBy.Ratings);
 		public static TextMessage GetSecondRatings() => GetTextMessage(SECOND_COLLECTION_VAR_NAME, SortBy.Ratings);
 
+		public static string Description { get => "Коллекции настольных игр для игротек"; }
 		public override TextMessage Respond(string? messageText, out bool finished)
 		{
 			finished = true;

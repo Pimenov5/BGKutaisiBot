@@ -1,4 +1,5 @@
 ﻿using BGKutaisiBot.Types;
+using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using System.Reflection;
 using Telegram.Bot;
@@ -23,6 +24,13 @@ namespace BGKutaisiBot.UI.Commands
 				if (!await botClient.TestApiAsync(_lazyCTS.Value.Token))
 					throw new ArgumentException($"Токен {args[0]} бота не прошёл проверку API");
 
+				List<Telegram.Bot.Types.BotCommand> botCommands = [];
+				IEnumerable<Type> types = this.GetType().Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.Command)));
+				foreach (Type type in types)
+					if (type.GetProperty("Description") is { } property && property.GetValue(null) is { } propertyValue && propertyValue is string description)
+						botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
+
+				await botClient.SetMyCommandsAsync(botCommands);
 				botClient.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, _lazyCTS.Value.Token);
 
 				User user = await botClient.GetMeAsync();
@@ -70,36 +78,54 @@ namespace BGKutaisiBot.UI.Commands
 					await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
 
 					Types.Command? command = null;
+					Types.Command? prevCommand = null;
 					if (messageText.StartsWith('/'))
 					{
 						string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
-						if (commandName == "cancel")
-						{
-							if (_chats.TryGetValue(chatId, out command))
-								await this.BotClient.SendTextMessageAsync(chatId, $"Отменено выполнение команды /{command.GetType().Name.ToLower()}");
-							_chats.Remove(chatId);
-							return;
-						}
-
 						Type? type = this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{commandName}", false, true);
 						if (type is null || !type.IsSubclassOf(typeof(Types.Command)))
 						{
 							await this.BotClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой");
 							return;
 						}
-						
-						_chats.Remove(chatId);
+
+						_chats.TryGetValue(chatId, out prevCommand);
+						if (prevCommand is not null)
+							_chats.Remove(chatId);
+
 						_chats.Add(chatId, (Types.Command)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}")));
 						messageText = messageText.Replace($"/{commandName}", "").TrimStart();
 					}
 
 					if (_chats.TryGetValue(chatId, out command))
 					{
-						TextMessage response = command.Respond(messageText, out bool finished);
+						bool finished = true;
+						TextMessage? response = null;
+						try 
+						{
+							response = command.Respond(messageText, out finished);
+						}
+						catch (CancelException e)
+						{
+							string? text = e.Cancelling switch
+							{
+								CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
+								CancelException.Cancel.Current => $"Выполнение/{command.GetType().Name.ToLower()} отменено",
+								_ => null
+							};
+
+							if (!string.IsNullOrEmpty(text))
+							{
+								if (!string.IsNullOrEmpty(e.Reason))
+									text = $"{text}. Причина: {e.Reason}";
+								response = new(text);
+							}
+						}
+
 						if (finished)
 							_chats.Remove(chatId);
-
-						await this.SendTextMessageAsync(chatId, response);
+						if (response is not null)
+							await this.SendTextMessageAsync(chatId, response);
 					}
 					else
 						await this.BotClient.SendTextMessageAsync(chatId, $"\"{messageText}\" не является командой или ответом на выполняемую команду");

@@ -1,11 +1,11 @@
-﻿using BGKutaisiBot.Types;
+﻿using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using BGKutaisiBot.UI.Commands;
 using Telegram.Bot;
 
 namespace BGKutaisiBot
 {
-	internal class Program
+    internal class Program
 	{
 		static async Task Main(string[] args)
 		{
@@ -52,7 +52,7 @@ namespace BGKutaisiBot
 						}
 					}
 				}
-				catch (Types.ExitException) { break; }
+				catch (ExitException) { break; }
 				catch (Exception e) { Logs.Instance.AddError(e); }
 			}
 		}
