@@ -12,7 +12,7 @@ namespace BGKutaisiBot.Commands
 {
 	internal class Collection : Types.BotCommand
 	{
-		enum SortBy { Titles, Players, Playtimes, Ratings }
+		enum SortBy { Ratings, Playtimes, Players, Titles }
 		static readonly Lazy<TeseraClient> _lazyTeseraClient = new();
 
 		static TextMessage GetTextMessage(string userLogin, SortBy sortBy)
@@ -53,7 +53,9 @@ namespace BGKutaisiBot.Commands
 
 			int i = 0;
 			Regex regex = new("(\\.|-|\\(|\\)|!|\\+)");
+			SortBy[] values = Enum.GetValues<SortBy>();
 			StringBuilder stringBuilder = new();
+
 			foreach (GameInfo game in games)
 				if (!string.IsNullOrEmpty(game.Title))
 				{
@@ -63,13 +65,15 @@ namespace BGKutaisiBot.Commands
 						playersCount = regex.Replace(playersCount, (Match match) => $"\\{match.Groups[0].Value}");
 
 					stringBuilder.AppendLine($"{++i}\\. [{title}](tesera.ru/game/{game.Alias?.Replace("-", "\\-")})");
-					stringBuilder.AppendLine($"  {(i > 9 ? "  " : string.Empty)}"
-						+ $"{(playersCount is null ? string.Empty : $"  👥{playersCount}")}"
-						+ $"{(game.N10Rating == 0 ? string.Empty : $"  ⭐️{game.N10Rating.ToString().Replace('.', ',')}")}"
-						+ $"{(game.PlaytimeMin == 0 ? string.Empty : $"  ⏳{(game.PlaytimeMin == game.PlaytimeMax || game.PlaytimeMax == 0 ? game.PlaytimeMin : $"{game.PlaytimeMin}\\-{game.PlaytimeMax}")}")}");
+					stringBuilder.AppendLine($"  {(i > 9 ? "  " : string.Empty)}" + string.Concat(values.ToList().ConvertAll<string>((SortBy value) => value switch {
+						SortBy.Players => $"{(playersCount is null ? string.Empty : $"  👥{playersCount}")}",
+						SortBy.Ratings => $"{(game.N10Rating == 0 ? string.Empty : $"  ⭐️{game.N10Rating.ToString().Replace('.', ',')}")}",
+						SortBy.Playtimes => $"{(game.PlaytimeMin == 0 ? string.Empty : $"  ⏳{(game.PlaytimeMin == game.PlaytimeMax || game.PlaytimeMax == 0 ?
+							game.PlaytimeMin : $"{game.PlaytimeMin}\\-{game.PlaytimeMax}")}")}",
+						_ => string.Empty
+					})));
 				}
 
-			SortBy[] values = Enum.GetValues<SortBy>();
 			List<InlineKeyboardButton> buttons = new() { Capacity = values.Length - 1 };
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
