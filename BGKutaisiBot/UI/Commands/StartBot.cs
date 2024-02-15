@@ -1,9 +1,5 @@
-﻿using BGKutaisiBot.Types;
-using BGKutaisiBot.Types.Exceptions;
-using BGKutaisiBot.Types.Logging;
-using System.Reflection;
+﻿using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
@@ -11,7 +7,6 @@ namespace BGKutaisiBot.UI.Commands
 {
 	internal class StartBot : BotCommand
 	{
-		readonly Dictionary<long, Types.BotCommand> _chats = [];
 		readonly Lazy<CancellationTokenSource> _lazyCTS = new();
 
 		public StartBot(Func<ITelegramBotClient?> getBotClient, Action<ITelegramBotClient, CancellationTokenSource> onBotStarted) : base("запустить бота", getBotClient)
@@ -32,121 +27,11 @@ namespace BGKutaisiBot.UI.Commands
 						botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
 
 				await botClient.SetMyCommandsAsync(botCommands);
-				botClient.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, _lazyCTS.Value.Token);
+				botClient.StartReceiving(Types.TelegramUpdateHandler.HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, _lazyCTS.Value.Token);
 
 				User user = await botClient.GetMeAsync();
 				Logs.Instance.Add($"@{user.Username} запущен", true);
 				onBotStarted.Invoke(botClient, _lazyCTS.Value);
-
-				async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
-				{
-					if (update.CallbackQuery is { } callbackQuery && callbackQuery.Data is { } callbackData)
-					{
-						Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
-						await this.BotClient.SendChatActionAsync(callbackQuery.From.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
-
-						Type? type = Types.BotCommand.TryParseCallbackData(callbackData, out string? typeName, out string? methodName, out string[]? args)
-							? this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{typeName}") : null;
-						MethodInfo? methodInfo = methodName is null ? null : type?.GetMethod(methodName);
-
-						string? reason = null;
-						object? response = null;
-						try
-						{
-							response = methodInfo?.Invoke(null, args is not null && args.Length != 0 ? args : methodInfo.GetParameters().Length == 1 ? [callbackQuery.Message?.Text] : null);
-						}
-						catch (CancelException e)
-						{
-							reason = e.Reason;
-						}
-
-
-						if (response is TextMessage textMessage)
-						{
-							try
-							{
-								await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-							}
-							catch (ApiRequestException e)
-							{
-								Logs.Instance.AddError(e);
-							}
-
-							await this.SendTextMessageAsync(callbackQuery.From.Id, textMessage);
-						}
-						else
-						{
-							if (type is null || methodInfo is null)
-								reason = "не удалось выделить или найти обработчик";
-							await this.BotClient.AnswerCallbackQueryAsync(callbackQuery.Id,
-								$"Отсутствует результат нажатия \"{callbackData}\"{(reason is null ? string.Empty : ". Причина:" + reason)}", true);
-						}
-					}
-
-					if (update.Message is not { } message || message?.Text is not { } messageText)
-						return;
-
-					messageText = messageText.Trim();
-					Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message?.Type.ToString()}]")}");
-					if (message?.Type == Telegram.Bot.Types.Enums.MessageType.ChatMemberLeft)
-						return;
-
-					long chatId = message.Chat.Id;
-					Types.BotCommand? command, prevCommand = null;
-					if (messageText.StartsWith('/'))
-					{
-						string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
-						Type? type = this.GetType().Assembly.GetType($"{this.GetType().Namespace?.Replace("UI.", "")}.{commandName}", false, true);
-						if (type is null || !type.IsSubclassOf(typeof(Types.BotCommand)))
-						{
-							await this.BotClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой");
-							return;
-						}
-
-						_chats.TryGetValue(chatId, out prevCommand);
-						if (prevCommand is not null)
-							_chats.Remove(chatId);
-
-						_chats.Add(chatId, (Types.BotCommand)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}")));
-						messageText = messageText.Replace($"/{commandName}", "").TrimStart();
-					}
-
-					if (_chats.TryGetValue(chatId, out command))
-					{
-						if (command.IsLong)
-							await this.BotClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing);
-
-						bool finished = true;
-						TextMessage? response = null;
-						try 
-						{
-							response = command.Respond(messageText, out finished);
-						}
-						catch (CancelException e)
-						{
-							string? text = e.Cancelling switch
-							{
-								CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
-								CancelException.Cancel.Current => $"Выполнение /{command.GetType().Name.ToLower()} отменено",
-								_ => null
-							};
-
-							if (!string.IsNullOrEmpty(text))
-							{
-								if (!string.IsNullOrEmpty(e.Reason))
-									text = $"{text}. Причина: {e.Reason}";
-								response = new(text);
-							}
-						}
-
-						if (finished)
-							_chats.Remove(chatId);
-						if (response is not null)
-							await this.SendTextMessageAsync(chatId, response);
-					}
-					else
-						await this.BotClient.SendTextMessageAsync(chatId, $"\"{messageText}\" не является командой или ответом на выполняемую команду");
-				}
 
 				Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
 				{
