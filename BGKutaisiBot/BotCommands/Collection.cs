@@ -47,7 +47,7 @@ namespace BGKutaisiBot.BotCommands
 						result = x.PlayersMax.CompareTo(y.PlayersMax);
 						return result == 0 ? x.PlayersMin.CompareTo(y.PlayersMin) : result;
 					case SortBy.Ratings:
-						return x.N10Rating.CompareTo(y.N10Rating);
+						return -1 * x.N10Rating.CompareTo(y.N10Rating);
 				}
 			});
 
