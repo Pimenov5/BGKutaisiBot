@@ -23,7 +23,7 @@ namespace BGKutaisiBot.Types
 			typeName = index < 0 ? null : callbackData.Remove(index);
 			methodName = typeName is null ? null : callbackData.Remove(0, index + 1);
 			index = methodName is null ? -1 : methodName.IndexOf(METHOD_ARGS_DELIMITER);
-			if (index > 0)
+			if (index > 0 && !string.IsNullOrEmpty(methodName))
 			{
 				string argsString = methodName[index..];
 				methodName = methodName.Remove(index);

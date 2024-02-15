@@ -78,9 +78,11 @@ namespace BGKutaisiBot.BotCommands
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
 				{
-					string callbackData = Types.BotCommand.GetCallbackData(typeof(Collection), "GetCollection", [userLogin, Enum.GetName(values[i])]);
-					buttons.Add(new InlineKeyboardButton(values[i] switch { SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" })
-						{ CallbackData = callbackData });
+					string callbackData = BotCommand.GetCallbackData(typeof(Collection), "GetCollection", [userLogin, Enum.GetName(values[i])
+						?? throw new NullReferenceException($"Не удалось получить имя для значения \"{values[i]}\" типа {typeof(SortBy).Name}")]);
+					buttons.Add(new InlineKeyboardButton(values[i] switch {
+						SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" , _ => "?"
+					}) { CallbackData = callbackData });
 				}
 
 			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
@@ -121,7 +123,7 @@ namespace BGKutaisiBot.BotCommands
 				throw new CancelException(CancelException.Cancel.Current, "не удалось получить данные пользователей Tesera.ru");
 
 			const string COLLECTION_URL_FORMAT = "tesera.ru/user/{0}/games/owns/";
-			string UserToString(UserFullInfo user) => $"[{logins[user.Login]}]({string.Format(COLLECTION_URL_FORMAT, logins[user.Login])}) \\({user.Name}\\)";
+			string UserToString(UserFullInfo user) => $"[{logins[user.Login ?? string.Empty]}]({string.Format(COLLECTION_URL_FORMAT, logins[user.Login ?? string.Empty])}) \\({user.Name}\\)";
 			string text = "Настольные игры для игротек хранятся в " + users.Count switch
 			{
 				1 => "коллекции " + UserToString(users[0]),
@@ -129,8 +131,8 @@ namespace BGKutaisiBot.BotCommands
 				_ => "коллекциях:" + string.Concat(users.ConvertAll<string>((UserFullInfo user) => " " + UserToString(user) + (user == users.Last() ? string.Empty : ",")))
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
-			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login] + $" ({user.Name})")
-				{ CallbackData = GetCallbackData(typeof(Collection), "GetCollection", [logins[user.Login], "Titles"]) }));
+			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
+				{ CallbackData = GetCallbackData(typeof(Collection), "GetCollection", [logins[user.Login ?? string.Empty], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
 		}
