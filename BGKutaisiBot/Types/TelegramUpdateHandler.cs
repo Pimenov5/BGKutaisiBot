@@ -44,9 +44,10 @@ namespace BGKutaisiBot.Types
 				{
 					await botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
 				}
-				catch (ApiRequestException e)
+				catch (Exception e)
 				{
-					Logs.Instance.AddError(e);
+					if (e is not ApiRequestException)
+						throw;
 				}
 
 				textMessage.CancellationToken = cancellationToken;
