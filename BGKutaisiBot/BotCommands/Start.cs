@@ -1,7 +1,7 @@
 ﻿using BGKutaisiBot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace BGKutaisiBot.Commands
+namespace BGKutaisiBot.BotCommands
 {
 	internal class Start : BotCommand
 	{

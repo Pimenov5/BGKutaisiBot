@@ -8,9 +8,9 @@ using Tesera.Types.Enums;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
 
-namespace BGKutaisiBot.Commands
+namespace BGKutaisiBot.BotCommands
 {
-	internal class Collection : Types.BotCommand
+	internal class Collection : BotCommand
 	{
 		enum SortBy { Ratings, Playtimes, Players, Titles }
 		static readonly Lazy<TeseraClient> _lazyTeseraClient = new();

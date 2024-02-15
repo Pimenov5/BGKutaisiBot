@@ -1,7 +1,7 @@
 ﻿using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
 
-namespace BGKutaisiBot.Commands
+namespace BGKutaisiBot.BotCommands
 {
 	internal class Cancel : BotCommand
 	{

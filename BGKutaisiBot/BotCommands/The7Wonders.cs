@@ -3,7 +3,7 @@ using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace BGKutaisiBot.Commands
+namespace BGKutaisiBot.BotCommands
 {
 	internal class The7Wonders : BotCommand
 	{
