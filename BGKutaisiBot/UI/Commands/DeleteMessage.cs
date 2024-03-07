@@ -9,7 +9,7 @@ namespace BGKutaisiBot.UI.Commands
 		{
 			this.Add(2, (string[] args) => {
 				this.BotClient.DeleteMessageAsync(args[0], int.Parse(args[1]));
-				Logs.Instance.Add("Сообщение удалено", true);
+				Logs.Instance.Add($"Сообщение (ID {args[1]}) удалено в чате {args[0]}");
 				return Task.CompletedTask;
 			});
 		}

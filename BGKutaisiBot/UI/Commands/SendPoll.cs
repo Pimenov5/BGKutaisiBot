@@ -42,7 +42,7 @@ namespace BGKutaisiBot.UI.Commands
 				Message pollMessage = await this.BotClient.SendPollAsync(args[0], collectionInfo.Title ?? throw new NullReferenceException($"У коллекции с ID {collectionInfo.Id} отсутствует название"), 
 					options, allowsMultipleAnswers: true)
 					?? throw new NullReferenceException("Не удалось отправить опрос");
-				Logs.Instance.Add($"Опрос (ID {pollMessage.MessageId}) отправлен в @{pollMessage.Chat.Username}", true);
+				Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {collectionInfo.Title}");
 			}
 
 			string? pollCollectionId = Environment.GetEnvironmentVariable("POLL_COLLECTION_ID");
