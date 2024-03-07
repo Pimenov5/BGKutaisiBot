@@ -6,6 +6,7 @@ namespace BGKutaisiBot.BotCommands
 	internal class Admin : OwnerBotCommand
 	{
 		public static Action<string>? CommandCallback { get; set; }
+		public static Func<string, Task>? CommandCallback { get; set; }
 		public override TextMessage? Respond(string? messageText, out bool finished)
 		{
 			finished = false;

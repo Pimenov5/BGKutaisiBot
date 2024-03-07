@@ -12,7 +12,7 @@ namespace BGKutaisiBot
 			ITelegramBotClient? botClient = null;
 			UI.AllCommands uiCommands = new(() => botClient, (newBotClient) => botClient = newBotClient);
 
-			async void ExecuteCommand(string line)
+			async Task ExecuteCommand(string line)
 			{
 				string[] lineSplitted = line.Split(' ');
 				if (lineSplitted.Length > 0 && uiCommands.ContainsCommand(lineSplitted[0]))
@@ -54,7 +54,7 @@ namespace BGKutaisiBot
 
 					string? line = Console.ReadLine()?.Trim();
 					if (!string.IsNullOrEmpty(line))
-						ExecuteCommand(line);
+						await ExecuteCommand(line);
 				}
 				catch (ExitException) { break; }
 				catch (Exception e) { Logs.Instance.AddError(e); }
