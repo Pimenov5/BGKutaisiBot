@@ -73,7 +73,8 @@ namespace BGKutaisiBot.Types
 			{
 				string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
 				Type? type = GetTypeByName(commandName, true);
-				if (type is null || !type.IsSubclassOf(typeof(BotCommand)))
+				if (type is null || !type.IsSubclassOf(typeof(BotCommand))
+					|| (type.IsSubclassOf(typeof(OwnerBotCommand)) && (Environment.GetEnvironmentVariable("BOT_OWNER_ID") is not string botOwnerId || botOwnerId != chatId.ToString())))
 				{
 					await botClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой", cancellationToken: cancellationToken);
 					return;
