@@ -5,14 +5,15 @@ namespace BGKutaisiBot.BotCommands
 {
 	internal class Admin : OwnerBotCommand
 	{
-		public static Action<string>? CommandCallback { get; set; }
+		bool _isFirst = true;
 		public static Func<string, Task>? CommandCallback { get; set; }
 		public override TextMessage? Respond(string? messageText, out bool finished)
 		{
-			finished = false;
 			if (CommandCallback is null)
 				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
 
+			finished = _isFirst && !string.IsNullOrEmpty(messageText);
+			_isFirst = false;
 			if (string.IsNullOrEmpty(messageText))
 				return new TextMessage("Режим администратора включён");
 
