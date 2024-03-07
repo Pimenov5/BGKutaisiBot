@@ -12,6 +12,26 @@ namespace BGKutaisiBot
 			ITelegramBotClient? botClient = null;
 			UI.AllCommands uiCommands = new(() => botClient, (newBotClient) => botClient = newBotClient);
 
+			async void ExecuteCommand(string line)
+			{
+				string[] lineSplitted = line.Split(' ');
+				if (lineSplitted.Length > 0 && uiCommands.ContainsCommand(lineSplitted[0]))
+				{
+					string commandName = lineSplitted[0];
+					Array.Copy(lineSplitted, 1, lineSplitted, 0, lineSplitted.Length - 1);
+					Array.Resize<string>(ref lineSplitted, lineSplitted.Length - 1);
+
+					string? testChatIdAlias = Environment.GetEnvironmentVariable("TEST_CHAT_ID_ALIAS");
+					if (lineSplitted.Length > 0 && !string.IsNullOrEmpty(testChatIdAlias))
+						for (int i = 0; i < lineSplitted.Length; i++)
+							if (lineSplitted[i] == testChatIdAlias)
+								lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID")?.ToString() ?? lineSplitted[i];
+
+					await uiCommands.TryExecuteAsync(commandName, lineSplitted);
+				}
+			}
+			BotCommands.Admin.CommandCallback = ExecuteCommand;
+
 			bool start = true;
 			while (true)
 			{
@@ -33,24 +53,8 @@ namespace BGKutaisiBot
 					}
 
 					string? line = Console.ReadLine()?.Trim();
-					if (!String.IsNullOrEmpty(line))
-					{
-						string[] lineSplitted = line.Split(' ');
-						if (lineSplitted.Length > 0 && uiCommands.ContainsCommand(lineSplitted[0]))
-						{
-							string commandName = lineSplitted[0];
-							Array.Copy(lineSplitted, 1, lineSplitted, 0, lineSplitted.Length - 1);
-							Array.Resize<string>(ref lineSplitted, lineSplitted.Length - 1);
-
-							string? testChatIdAlias = Environment.GetEnvironmentVariable("TEST_CHAT_ID_ALIAS");
-							if (lineSplitted.Length > 0 && !string.IsNullOrEmpty(testChatIdAlias))
-								for (int i = 0; i < lineSplitted.Length; i++)
-									if (lineSplitted[i] == testChatIdAlias)
-										lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID")?.ToString() ?? lineSplitted[i];
-
-							await uiCommands.TryExecuteAsync(commandName, lineSplitted);
-						}
-					}
+					if (!string.IsNullOrEmpty(line))
+						ExecuteCommand(line);
 				}
 				catch (ExitException) { break; }
 				catch (Exception e) { Logs.Instance.AddError(e); }
