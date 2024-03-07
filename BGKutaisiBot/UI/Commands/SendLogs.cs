@@ -13,31 +13,22 @@ namespace BGKutaisiBot.UI.Commands
 				if (Logs.Instance.Count == 0)
 					throw new InvalidOperationException("Отсутствуют записи в логе");
 
-				if (args.Length == 1) {
-					Array.Resize(ref args, 2);
-					args[1] = $"Logs\\{Logs.Instance.First.DateTime.ToString("dd MMMM yyyy HH-mm")} — {(Logs.Instance.First.DateTime.Date == Logs.Instance.Last.DateTime.Date
-						? $"{Logs.Instance.Last.DateTime.ToString("HH-mm")}" : $"{Logs.Instance.Last.DateTime.ToString("dd MMMM yyyy HH-mm")}")}.txt";
-				}
-
-				string path = args[1];
-				if (!Directory.Exists(path))
-					Directory.CreateDirectory(Path.GetDirectoryName(path) ?? throw new NullReferenceException($"Не удалось выделить имя директории из \"{path}\""));
-
-				using (StreamWriter streamWriter = new(path))
+				using MemoryStream memoryStream = new();
+				using StreamWriter streamWriter = new(memoryStream);
 				{
 					foreach (var item in Logs.Instance.ToEnumerable())
 						streamWriter.WriteLine(item.ToString());
 				}
+				streamWriter.Flush();
+				memoryStream.Position = 0;
 
-				Logs.Instance.Add($"Лог сохранён в файл {path}", true);
-
-				FileStream fileStream = new(path, FileMode.Open);
-				Message message = await this.BotClient.SendDocumentAsync(args[0], InputFile.FromStream(fileStream, path));
-				Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}) с документом:  {path}");
+				string fileName = $"{Logs.Instance.First.DateTime.ToString("dd MMMM yyyy HH-mm")} — {(Logs.Instance.First.DateTime.Date == Logs.Instance.Last.DateTime.Date
+					? $"{Logs.Instance.Last.DateTime.ToString("HH-mm")}" : $"{Logs.Instance.Last.DateTime.ToString("dd MMMM yyyy HH-mm")}")}.txt";
+				Message message = await this.BotClient.SendDocumentAsync(args[0], InputFile.FromStream(memoryStream, fileName));
+				Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}) с документом:  {fileName}");
 			}
 
 			this.Add(1, Function);
-			this.Add(2, Function);
 		}
 	}
 }
