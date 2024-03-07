@@ -56,7 +56,7 @@ namespace BGKutaisiBot.UI
 			this.Add(new SendPoll(getBotClient));
 			this.Add(new SendNotice(getBotClient));
 			this.Add(new DeleteMessage(getBotClient));
-			this.Add(new SaveLogs());
+			this.Add(new SendLogs(getBotClient));
 		}
 		public bool ContainsCommand(string commandName) => _commands.ContainsKey(commandName.ToLower());
 		public async Task<bool> TryExecuteAsync(string commandName, string[] args) => _commands.TryGetValue(commandName.ToLower(), out Command? command) && await command.TryExecuteAsync(args);
