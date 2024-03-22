@@ -7,6 +7,7 @@ using Tesera.Models;
 using Tesera.Types.Enums;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
+using System.Collections.Concurrent;
 
 namespace BGKutaisiBot.BotCommands
 {
@@ -22,13 +23,20 @@ namespace BGKutaisiBot.BotCommands
 				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
-			foreach (CustomCollectionGameInfo item in gamesInfo)
-				if (!item.Game.IsAddition && !string.IsNullOrEmpty(item.Game.Alias))
+			using (BlockingCollection<GameInfo> collection = new(gamesInfo.Count()))
+			{
+				Parallel.ForEach(gamesInfo, (CustomCollectionGameInfo item) =>
 				{
-					GameInfoResponse? game = _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
-					if (game is not null)
-						games.Add(game.Game);
-				}
+					if (!item.Game.IsAddition && !string.IsNullOrEmpty(item.Game.Alias))
+					{
+						GameInfoResponse? game = _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
+						if (game is not null)
+							collection.Add(game.Game);
+					}
+				});
+
+				games.AddRange(collection);
+			}
 
 			if (games.Count == 0)
 				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить информацию об играх из коллекции пользователя {userLogin}");
