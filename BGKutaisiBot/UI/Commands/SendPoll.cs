@@ -1,4 +1,4 @@
-﻿using BGKutaisiBot.Types;
+﻿using Telegram.Bot.Types.ReplyMarkups;
 using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -39,8 +39,12 @@ namespace BGKutaisiBot.UI.Commands
 				}
 
 				Array.Resize(ref options, i);
+				IReplyMarkup? replyMarkup = null;
+				if (Environment.GetEnvironmentVariable("POLL_COLLECTION_USER_ID") is string collectionUserId && int.TryParse(collectionUserId, out int userId))
+					replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton("Игры из опроса на сайте Tesera.ru") { Url = $"tesera.ru/user/{userId}/lists/{collectionId}" });
+
 				Message pollMessage = await this.BotClient.SendPollAsync(args[0], collectionInfo.Title ?? throw new NullReferenceException($"У коллекции с ID {collectionInfo.Id} отсутствует название"), 
-					options, allowsMultipleAnswers: true)
+					options, allowsMultipleAnswers: true, replyMarkup: replyMarkup)
 					?? throw new NullReferenceException("Не удалось отправить опрос");
 				Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {collectionInfo.Title}");
 			}
