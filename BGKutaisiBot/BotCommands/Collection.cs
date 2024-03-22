@@ -7,6 +7,8 @@ using Tesera.Models;
 using Tesera.Types.Enums;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
+using System.Collections.Concurrent;
+using BGKutaisiBot.Types.Logging;
 
 namespace BGKutaisiBot.BotCommands
 {
@@ -17,18 +19,24 @@ namespace BGKutaisiBot.BotCommands
 
 		static TextMessage GetTextMessage(string userLogin, SortBy sortBy)
 		{
-			var gamesInfo = _lazyTeseraClient.Value.Get<IEnumerable<CustomCollectionGameInfo>>(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.All));
-			if (gamesInfo is null)
-				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
+			IEnumerable<CustomCollectionGameInfo> gamesInfo = _lazyTeseraClient.Value.Get<IEnumerable<CustomCollectionGameInfo>>(
+				new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
+				?? throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
-			foreach (CustomCollectionGameInfo item in gamesInfo)
-				if (!item.Game.IsAddition && !string.IsNullOrEmpty(item.Game.Alias))
+			using (BlockingCollection<GameInfo> collection = new(gamesInfo.Count()))
+			{
+				Parallel.ForEach(gamesInfo, (CustomCollectionGameInfo item) =>
 				{
-					GameInfoResponse? game = _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
+					GameInfoResponse? game = string.IsNullOrEmpty(item.Game.Alias) ? null : _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
 					if (game is not null)
-						games.Add(game.Game);
-				}
+						collection.Add(game.Game);
+					else
+						Logs.Instance.Add("Не удалось получить информацию об игре " + item.Game.Alias ?? item.Game.Id.ToString());
+				});
+
+				games.AddRange(collection);
+			}
 
 			if (games.Count == 0)
 				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить информацию об играх из коллекции пользователя {userLogin}");
