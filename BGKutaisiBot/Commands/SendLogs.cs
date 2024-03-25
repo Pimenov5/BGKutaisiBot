@@ -6,6 +6,7 @@ namespace BGKutaisiBot.Commands
 {
 	internal class SendLogs
 	{
+		public static string Description { get => "Отправить файл лога"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, CancellationToken cancellationToken)
 		{
 			if (Logs.Instance.Count == 0)

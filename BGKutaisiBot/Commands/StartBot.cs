@@ -10,6 +10,7 @@ namespace BGKutaisiBot.Commands
 		public delegate void OnBotStartedHandler(Type type, ITelegramBotClient botClient);
 		public static event OnBotStartedHandler? OnBotStartedEvent;
 
+		public static string Description { get => "Запустить бота"; }
 		public static async Task RespondAsync(ITelegramBotClient? telegramBotClient, string botToken, CancellationToken cancellationToken)
 		{
 			if (telegramBotClient is not null)

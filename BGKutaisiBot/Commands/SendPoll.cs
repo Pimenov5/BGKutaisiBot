@@ -11,6 +11,7 @@ namespace BGKutaisiBot.Commands
 	{
 		static readonly Lazy<HttpClient> _lazyHttpClient = new();
 
+		public static string Description { get => "Отправить опрос с играми из коллекции"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string pollCollectionId, CancellationToken cancellationToken)
 		{
 			int collectionId = int.Parse(pollCollectionId);
