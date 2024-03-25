@@ -1,7 +1,7 @@
 ﻿namespace BGKutaisiBot.UI.Commands
 {
-	internal class Exit : Command
+	internal class Exit
 	{
-		public Exit() : base("закрыть программу") => this.Add(0, (string[] args) => throw new Types.Exceptions.ExitException());
+		public static void Respond() => throw new Types.Exceptions.ExitException();
 	}
 }
