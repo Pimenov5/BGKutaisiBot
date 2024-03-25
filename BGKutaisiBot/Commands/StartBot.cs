@@ -3,7 +3,7 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
-namespace BGKutaisiBot.UI.Commands
+namespace BGKutaisiBot.Commands
 {
 	internal class StartBot
 	{

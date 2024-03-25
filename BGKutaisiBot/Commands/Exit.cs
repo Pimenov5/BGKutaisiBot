@@ -1,4 +1,4 @@
-﻿namespace BGKutaisiBot.UI.Commands
+﻿namespace BGKutaisiBot.Commands
 {
 	internal class Exit
 	{

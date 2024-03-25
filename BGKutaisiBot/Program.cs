@@ -1,6 +1,6 @@
 ﻿using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
-using BGKutaisiBot.UI.Commands;
+using BGKutaisiBot.Commands;
 using System.Reflection;
 using Telegram.Bot;
 using System.Text;
@@ -27,7 +27,10 @@ namespace BGKutaisiBot
 						if (lineSplitted[i] == testChatIdAlias)
 							lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID") ?? lineSplitted[i];
 
-				Type? type = typeof(Program).Assembly.GetType(typeof(Program).Namespace + ".UI.Commands." + lineSplitted[0], false, true);
+				Type? type = typeof(Program).Assembly.GetType(typeof(Program).Namespace + ".Commands." + lineSplitted[0], false, true);
+				if (type is null)
+					return;
+
 				lineSplitted = lineSplitted[1..];
 				Type[] types = new Type[lineSplitted.Length + 2];
 				types[0] = typeof(ITelegramBotClient);

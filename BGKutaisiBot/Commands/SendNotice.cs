@@ -3,7 +3,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using System.Globalization;
 
-namespace BGKutaisiBot.UI.Commands
+namespace BGKutaisiBot.Commands
 {
 	internal class SendNotice
 	{

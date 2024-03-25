@@ -1,7 +1,7 @@
 ﻿using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 
-namespace BGKutaisiBot.UI.Commands
+namespace BGKutaisiBot.Commands
 {
 	internal class DeleteMessage
 	{

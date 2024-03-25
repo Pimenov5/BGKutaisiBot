@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 using Tesera.Models;
 using Tesera.Types.Enums;
 
-namespace BGKutaisiBot.UI.Commands
+namespace BGKutaisiBot.Commands
 {
 	internal class SendPoll
 	{
