@@ -128,16 +128,27 @@ namespace BGKutaisiBot.Types
 				await botClient.SendTextMessageAsync(chatId, $"\"{messageText}\" не является командой или ответом на выполняемую команду", cancellationToken: cancellationToken);
 		}
 
+		public delegate Task NotPrivateTextMessageHandler(Type type, ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken);
+		public static event NotPrivateTextMessageHandler? NotPrivateTextMessageEvent;
+
 		public async static Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 		{
 			try
 			{
 				switch (update.Type)
 				{
-					case UpdateType.Message when update.Message is { } message && message.Text is { } messageText:
-						await HandleMessageAsync(botClient, message, messageText, cancellationToken);
+					case UpdateType.Message:
+					case UpdateType.EditedMessage:
+						Message? message = update.Message ?? update.EditedMessage;
+						if (message is not null && message.Text is string messageText) {
+							if (message.Chat.Type is ChatType.Private)
+								await HandleMessageAsync(botClient, message, messageText, cancellationToken);
+							else if (NotPrivateTextMessageEvent is not null)
+								await NotPrivateTextMessageEvent(typeof(TelegramUpdateHandler), botClient, message, messageText, cancellationToken);
+						}
 						break;
-					case UpdateType.CallbackQuery when update.CallbackQuery is { } callbackQuery && callbackQuery.Data is { } callbackData:
+
+					case UpdateType.CallbackQuery when update.CallbackQuery is CallbackQuery callbackQuery && callbackQuery.Data is string callbackData:
 						await HandleCallbackQueryAsync(botClient, callbackQuery, callbackData, cancellationToken);
 						break;
 				}
