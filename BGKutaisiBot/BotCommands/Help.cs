@@ -26,7 +26,7 @@ namespace BGKutaisiBot.BotCommands
 					_ => " из списка: " + messageText
 				});
 
-			return new TextMessage(stringBuilder.ToString().TrimEnd());
+			return new TextMessage(stringBuilder.ToString().TrimEnd(), true);
 		}
 
 		public static string Description { get => "Подробные инструкции для каждой команды"; }
