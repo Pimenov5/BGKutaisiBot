@@ -63,12 +63,9 @@ namespace BGKutaisiBot
 					if (start)
 					{
 						start = false;
-						if (args.Length > 0)
-						{
-							string commandLine = new StringBuilder().AppendJoin(' ', args).ToString();
-							Console.WriteLine(commandLine);
-							await ExecuteCommand(commandLine);
-						}
+						string commandLine = args.Length > 0 ? new StringBuilder().AppendJoin(' ', args).ToString() : typeof(Help).Name.ToLower();
+						Console.WriteLine(commandLine);
+						await ExecuteCommand(commandLine);
 					}
 
 					string? line = Console.ReadLine()?.Trim();
