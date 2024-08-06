@@ -55,9 +55,9 @@ namespace BGKutaisiBot.BotCommands
 		{
 			finished = false;
 			if (string.IsNullOrEmpty(input))
-				return new TextMessage("Введите от 3 до 7 имён игроков, разделённых пробелами, например:\n" + EXAMPLE_NAMES);
+				return new TextMessage("Введите от 3 до 7 имён игроков, разделённых пробелами или переносом строки, например:\n" + EXAMPLE_NAMES);
 
-			string[] names = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			string[] names = input.Split(input.Contains('\n') ? "\n" : " ", StringSplitOptions.RemoveEmptyEntries);
 			if (names.Length < 3 || names.Length > 7)
 				return new TextMessage($"\"7 Чудес\" поддерживает 3-7 игроков, введённое вами количество: {names.Length}");
 
