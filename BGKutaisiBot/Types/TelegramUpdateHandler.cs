@@ -115,6 +115,9 @@ namespace BGKutaisiBot.Types
 							text = $"{text}. Причина: {e.Reason}";
 						response = new(text);
 					}
+				catch (RollDiceException)
+				{
+					await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
 				}
 
 				if (finished)
