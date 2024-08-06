@@ -69,6 +69,12 @@ namespace BGKutaisiBot.Types
 				return;
 
 			long chatId = message.Chat.Id;
+			if (messageText == ROLL_DICE_KEYBOARD_TEXT)
+			{
+				await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+				return;
+			}
+
 			BotCommand? prevCommand = null;
 			if (messageText.StartsWith('/'))
 			{
@@ -113,8 +119,9 @@ namespace BGKutaisiBot.Types
 					{
 						if (!string.IsNullOrEmpty(e.Reason))
 							text = $"{text}. Причина: {e.Reason}";
-						response = new(text);
+						response = new(text, true);
 					}
+				}
 				catch (RollDiceException)
 				{
 					await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
@@ -156,6 +163,8 @@ namespace BGKutaisiBot.Types
 			optionsList.ForEach((KeyValuePair<string, int> item) => stringBuilder.AppendLine(item.ToString()));
 			await new TextMessage(stringBuilder.ToString()) { CancellationToken = cancellationToken }.SendTextMessageAsync(chatId, botClient);
 		}
+
+		public static string ROLL_DICE_KEYBOARD_TEXT = "🎲";
 
 		public delegate Task NotPrivateTextMessageHandler(Type type, ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken);
 		public static event NotPrivateTextMessageHandler? NotPrivateTextMessageEvent;
