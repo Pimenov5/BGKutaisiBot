@@ -29,7 +29,7 @@ namespace BGKutaisiBot.Commands
 			await botClient.SetMyCommandsAsync(botCommands);
 			botClient.StartReceiving(Types.TelegramUpdateHandler.HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
 
-			User user = await botClient.GetMeAsync();
+			User user = await botClient.GetMeAsync(cancellationToken);
 			Logs.Instance.Add($"@{user.Username} запущен", true);
 			OnBotStartedEvent?.Invoke(typeof(StartBot), botClient);
 

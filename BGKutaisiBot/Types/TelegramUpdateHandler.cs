@@ -1,6 +1,7 @@
 ﻿using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using System.Reflection;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -91,7 +92,7 @@ namespace BGKutaisiBot.Types
 			if (_chats.TryGetValue(chatId, out BotCommand? command))
 			{
 				if (command.IsLong)
-					await botClient.SendChatActionAsync(chatId, Telegram.Bot.Types.Enums.ChatAction.Typing, cancellationToken: cancellationToken);
+					await botClient.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: cancellationToken);
 
 				bool finished = true;
 				TextMessage? response = null;
@@ -128,6 +129,31 @@ namespace BGKutaisiBot.Types
 				await botClient.SendTextMessageAsync(chatId, $"\"{messageText}\" не является командой или ответом на выполняемую команду", cancellationToken: cancellationToken);
 		}
 
+		static async Task HandleMessageWithPollAsync(ITelegramBotClient botClient, Message message, Poll poll, CancellationToken cancellationToken)
+		{
+			Logs.Instance.Add($"@{message.From?.Username}: [{poll.Question}]");
+
+			Dictionary<string, int> options = [];
+			foreach (var item in poll.Options)
+				if (item.VoterCount != 0)
+					options.Add(item.Text.Contains('+') ? item.Text.Remove(item.Text.IndexOf('+')) : item.Text, item.VoterCount);
+
+			long chatId = message.Chat.Id;
+			if (options.Count == 0)
+			{
+				await botClient.SendTextMessageAsync(chatId, "В опросе ещё никто не проголосовал", cancellationToken: cancellationToken);
+				return;
+			}
+			
+			List<KeyValuePair<string, int>> optionsList = options.ToList();
+			optionsList.Sort((KeyValuePair<string, int> x, KeyValuePair<string, int> y) => y.Value.CompareTo(x.Value));
+
+			StringBuilder stringBuilder = new();
+			stringBuilder.AppendLine("Количество голосов: " + poll.TotalVoterCount);
+			optionsList.ForEach((KeyValuePair<string, int> item) => stringBuilder.AppendLine(item.ToString()));
+			await new TextMessage(stringBuilder.ToString()) { CancellationToken = cancellationToken }.SendTextMessageAsync(chatId, botClient);
+		}
+
 		public delegate Task NotPrivateTextMessageHandler(Type type, ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken);
 		public static event NotPrivateTextMessageHandler? NotPrivateTextMessageEvent;
 
@@ -140,16 +166,33 @@ namespace BGKutaisiBot.Types
 					case UpdateType.Message:
 					case UpdateType.EditedMessage:
 						Message? message = update.Message ?? update.EditedMessage;
-						if (message is not null && message.Text is string messageText) {
+						if (message is null)
+							break;
+
+						if (message.Text is string messageText) {
 							if (message.Chat.Type is ChatType.Private)
 								await HandleMessageAsync(botClient, message, messageText, cancellationToken);
 							else if (NotPrivateTextMessageEvent is not null)
 								await NotPrivateTextMessageEvent(typeof(TelegramUpdateHandler), botClient, message, messageText, cancellationToken);
-						}
+						} else if (message.Poll is Poll messagePoll && Environment.GetEnvironmentVariable("BOT_OWNER_ID") is string botOwnerId && botOwnerId == message.Chat.Id.ToString())
+							await HandleMessageWithPollAsync(botClient, message, messagePoll, cancellationToken);
 						break;
 
 					case UpdateType.CallbackQuery when update.CallbackQuery is CallbackQuery callbackQuery && callbackQuery.Data is string callbackData:
 						await HandleCallbackQueryAsync(botClient, callbackQuery, callbackData, cancellationToken);
+						break;
+
+					case UpdateType.ChannelPost:
+					case UpdateType.EditedChannelPost:
+						Message? channelPost = update.ChannelPost ?? update.EditedChannelPost;
+						Logs.Instance.Add($"@{channelPost?.From?.Username}: {channelPost?.Text}");
+						if (channelPost != null && channelPost.Chat.Type is ChatType.Private)
+							await new TextMessage("Извините, бот не обрабатывает посты из каналов")
+								{ CancellationToken = cancellationToken }.SendTextMessageAsync(channelPost.Chat.Id, botClient);
+						break;
+
+					default:
+						Logs.Instance.Add(update.Type.ToString());
 						break;
 				}
 			}

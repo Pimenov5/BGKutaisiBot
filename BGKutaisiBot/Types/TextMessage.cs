@@ -6,9 +6,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Types
 {
-	internal class TextMessage
+	internal class TextMessage(string text)
 	{
-		public string Text;
+		public string Text = text;
 		public int? MessageThreadId;
 		public ParseMode? ParseMode;
 		public IEnumerable<MessageEntity>? Entities;
@@ -20,7 +20,6 @@ namespace BGKutaisiBot.Types
 		public IReplyMarkup? ReplyMarkup;
 		public CancellationToken CancellationToken = default;
 
-		public TextMessage(string text) => this.Text = text;
 		public async Task<Message> SendTextMessageAsync(ChatId chatId, ITelegramBotClient botClient)
 		{
 			Message message = await botClient.SendTextMessageAsync(chatId, this.Text, this.MessageThreadId, this.ParseMode, this.Entities, this.DisableWebPagePreview,

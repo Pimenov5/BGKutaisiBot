@@ -15,7 +15,7 @@ namespace BGKutaisiBot.Commands
 		{
 			string question = PreparePoll(int.Parse(pollCollectionId), out string[] options, out IReplyMarkup? replyMarkup);
 
-			string text = question + "\n Голосуйте за одну или несколько игр в комментариях";
+			string text = question + "\nГолосуйте за одну или несколько игр в комментариях";
 			await new TextMessage("> " + text) { ParseMode = ParseMode.MarkdownV2, CancellationToken = cancellationToken }.
 				SendTextMessageAsync(chatId, botClient);
 
