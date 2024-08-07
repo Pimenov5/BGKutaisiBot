@@ -17,6 +17,7 @@ namespace BGKutaisiBot.Types
 
 		public virtual bool IsLong { get => false; }
 		public abstract TextMessage? Respond(string? messageText, out bool finished);
+		public virtual TextMessage? Respond(long chatId, string? messageText, out bool finished) => Respond(messageText, out finished);
 		public static bool TryParseCallbackData(string callbackData, out string? typeName, out string? methodName, out string[]? args)
 		{
 			int index = callbackData.IndexOf(CLASS_METHOD_DELIMITER);
