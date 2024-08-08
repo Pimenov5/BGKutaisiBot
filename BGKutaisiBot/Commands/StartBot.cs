@@ -1,4 +1,5 @@
-﻿using BGKutaisiBot.Types.Logging;
+﻿using BGKutaisiBot.Types;
+using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -27,17 +28,11 @@ namespace BGKutaisiBot.Commands
 					botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
 
 			await botClient.SetMyCommandsAsync(botCommands);
-			botClient.StartReceiving(Types.TelegramUpdateHandler.HandleUpdateAsync, HandlePollingErrorAsync, new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
+			botClient.StartReceiving(new TelegramUpdateHandler(), new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
 
 			User user = await botClient.GetMeAsync(cancellationToken);
 			Logs.Instance.Add($"@{user.Username} запущен", true);
 			OnBotStartedEvent?.Invoke(typeof(StartBot), botClient);
-
-			static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-			{
-				Logs.Instance.AddError(exception);
-				return Task.CompletedTask;
-			}
 		}
 		public static async Task RespondAsync(ITelegramBotClient? botClient, CancellationToken cancellationToken)
 		{

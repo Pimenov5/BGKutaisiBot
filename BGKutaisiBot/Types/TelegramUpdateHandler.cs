@@ -4,12 +4,13 @@ using System.Reflection;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.Types
 {
-	internal static class TelegramUpdateHandler
+	internal class TelegramUpdateHandler : IUpdateHandler
 	{
 		static readonly Dictionary<long, BotCommand> _chats = [];
 		static Type? GetTypeByName(string? typeName, bool ignoreCase = false)
@@ -168,7 +169,7 @@ namespace BGKutaisiBot.Types
 		public delegate Task NotPrivateTextMessageHandler(Type type, ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken);
 		public static event NotPrivateTextMessageHandler? NotPrivateTextMessageEvent;
 
-		public async static Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+		public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -211,6 +212,11 @@ namespace BGKutaisiBot.Types
 			{
 				Logs.Instance.AddError(e);
 			}
+		}
+		public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		{
+			Logs.Instance.AddError(exception);
+			return Task.CompletedTask;
 		}
 	}
 }
