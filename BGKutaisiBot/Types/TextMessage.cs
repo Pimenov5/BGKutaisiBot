@@ -10,15 +10,15 @@ namespace BGKutaisiBot.Types
 	{
 		public string Text = text;
 		public bool AddRollDiceKeyboard = addRollDiceKeyboard;
-		public int? MessageThreadId;
-		public ParseMode? ParseMode;
-		public IEnumerable<MessageEntity>? Entities;
-		public bool? DisableWebPagePreview;
-		public bool? DisableNotification;
-		public bool? ProtectContent;
-		public int? ReplyToMessageId;
-		public bool? AllowSendingWithoutReply;
-		public IReplyMarkup? ReplyMarkup;
+		public int? MessageThreadId = null;
+		public ParseMode? ParseMode = null;
+		public IEnumerable<MessageEntity>? Entities = null;
+		public bool? DisableWebPagePreview = null;
+		public bool? DisableNotification = null;
+		public bool? ProtectContent = null;
+		public int? ReplyToMessageId = null;
+		public bool? AllowSendingWithoutReply = null;
+		public IReplyMarkup? ReplyMarkup = null;
 		public CancellationToken CancellationToken = default;
 
 		public async Task<Message> SendTextMessageAsync(ChatId chatId, ITelegramBotClient botClient)
