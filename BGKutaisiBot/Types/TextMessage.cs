@@ -26,7 +26,8 @@ namespace BGKutaisiBot.Types
 			Message message = await botClient.SendTextMessageAsync(chatId, this.Text, this.MessageThreadId, this.ParseMode, this.Entities, this.DisableWebPagePreview,
 				this.DisableNotification, this.ProtectContent, this.ReplyToMessageId, this.AllowSendingWithoutReply,
 				this.ReplyMarkup ?? (this.AddRollDiceKeyboard
-					? new ReplyKeyboardMarkup(new KeyboardButton(TelegramUpdateHandler.ROLL_DICE_KEYBOARD_TEXT)) { ResizeKeyboard = true } : new ReplyKeyboardRemove()),
+					? new ReplyKeyboardMarkup(new KeyboardButton(TelegramUpdateHandler.ROLL_DICE_KEYBOARD_TEXT)) { ResizeKeyboard = true }
+					: chatId.ToString() is string chat && (chat.StartsWith('@') || chat.StartsWith('-')) ? null : new ReplyKeyboardRemove()),
 				this.CancellationToken)
 				?? throw new NullReferenceException($"Не удалось отправить {chatId} сообщение {this}");
 
