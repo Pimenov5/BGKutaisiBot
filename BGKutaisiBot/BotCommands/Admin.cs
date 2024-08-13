@@ -11,6 +11,7 @@ namespace BGKutaisiBot.BotCommands
 		static readonly Dictionary<long, byte> _users = [];
 
 		public static Func<string, Task>? CommandCallback { get; set; }
+		public static bool Contains(long id) => _admins.Contains(id);
 		public override TextMessage? Respond(string? messageText, out bool finished) => throw new NotImplementedException();
 		public override TextMessage? Respond(long chatId, string? messageText, out bool finished)
 		{
@@ -19,7 +20,7 @@ namespace BGKutaisiBot.BotCommands
 			if (Environment.GetEnvironmentVariable("BOT_ADMIN_PASSWORD") is not string password)
 				throw new CancelException(CancelException.Cancel.Current, "в переменных окружения отсутствует пароль администратора");
 
-			if (!_admins.Contains(chatId))
+			if (!Contains(chatId))
 			{
 				if (!_users.ContainsKey(chatId))
 					_users.Add(chatId, 0);

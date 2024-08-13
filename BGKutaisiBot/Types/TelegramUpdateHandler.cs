@@ -1,4 +1,5 @@
-﻿using BGKutaisiBot.Types.Exceptions;
+﻿using BGKutaisiBot.BotCommands;
+using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using System.Reflection;
 using System.Text;
@@ -186,7 +187,7 @@ namespace BGKutaisiBot.Types
 								await HandleMessageAsync(botClient, message, messageText, cancellationToken);
 							else if (NotPrivateTextMessageEvent is not null)
 								await NotPrivateTextMessageEvent(typeof(TelegramUpdateHandler), botClient, message, messageText, cancellationToken);
-						} else if (message.Poll is Poll messagePoll && Environment.GetEnvironmentVariable("BOT_OWNER_ID") is string botOwnerId && botOwnerId == message.Chat.Id.ToString())
+						} else if (message.Poll is Poll messagePoll && Admin.Contains(message.Chat.Id))
 							await HandleMessageWithPollAsync(botClient, message, messagePoll, cancellationToken);
 						break;
 
