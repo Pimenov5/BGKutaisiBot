@@ -1,14 +1,44 @@
 ﻿using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
+using BGKutaisiBot.Types.Logging;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class Admin : BotCommand
+	internal class Admin : BotCommand, IConsoleCommand
 	{
 		const byte LOGIN_TRIES_MAX_COUNT = 3;
 		bool _isFirst = true;
 		static readonly List<long> _admins = [];
 		static readonly Dictionary<long, byte> _users = [];
+
+		static bool AddAdmin(long userId) {
+			if (Contains(userId))
+			{
+				Logs.Instance.Add($"Идентификатор \"{userId}\" уже существует в списке администраторов");
+				return false;
+			}
+			else
+			{
+				_admins.Add(userId);
+				Logs.Instance.Add($"Идентификатор \"{userId}\" добавлен в список администраторов");
+				return true;
+			}
+		}
+		static bool RemoveAdmin(long userId)
+		{
+			_users.TryAdd(userId, LOGIN_TRIES_MAX_COUNT); // запрет пользователю авторизации как администратор
+			if (Contains(userId))
+			{
+				_admins.Remove(userId);
+				Logs.Instance.Add($"Идентификатор \"{userId}\" удалён из списка администраторов");
+				return true;
+			}
+			else
+			{
+				Logs.Instance.Add($"Идентификатор \"{userId}\" не существует в списке администраторов");
+				return false;
+			}
+		}
 
 		public static Func<string, Task>? CommandCallback { get; set; }
 		public static bool Contains(long id) => _admins.Contains(id);
@@ -62,6 +92,25 @@ namespace BGKutaisiBot.BotCommands
 
 			CommandCallback(messageText);
 			return null;
+		}
+		public static void Respond(string action, string strUserId)
+		{
+			if (action.Length > 1)
+				throw new ArgumentException($"\"{action}\" не является символом");
+			if (!long.TryParse(strUserId, out long userId))
+				throw new ArgumentException($"\"{strUserId}\" не является идентификатором пользователя");
+
+			switch (action[0])
+			{
+				case '+':
+					AddAdmin(userId);
+					break;
+				case '-':
+					RemoveAdmin(userId);
+					break;
+				default:
+					throw new ArgumentException($"\"{action}\" не является символом операции");
+			};			
 		}
 	}
 }
