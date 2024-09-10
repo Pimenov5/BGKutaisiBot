@@ -7,7 +7,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class AttachPoll : SendPoll
+	internal class AttachPoll : SendPoll, IAsyncConsoleCommand
 	{
 		public static new string Description { get => "Отправить опрос в комментарии в новому сообщению"; }
 

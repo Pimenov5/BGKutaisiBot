@@ -6,7 +6,7 @@ using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class StartBot
+	internal class StartBot : IAsyncConsoleCommand
 	{
 		public delegate void OnBotStartedHandler(Type type, ITelegramBotClient botClient);
 		public static event OnBotStartedHandler? OnBotStartedEvent;

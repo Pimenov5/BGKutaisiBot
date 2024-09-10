@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class SendNotice
+	internal class SendNotice : IAsyncConsoleCommand
 	{
 		public static string Description { get => "Отправить уведомление об игротеке"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string arg1, string arg2, CancellationToken cancellationToken)

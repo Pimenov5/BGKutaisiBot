@@ -4,10 +4,11 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Tesera.Models;
 using Tesera.Types.Enums;
+using BGKutaisiBot.Types;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class SendPoll
+	internal class SendPoll : IAsyncConsoleCommand
 	{
 		static readonly Lazy<HttpClient> _lazyHttpClient = new();
 
