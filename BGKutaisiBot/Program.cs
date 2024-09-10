@@ -3,7 +3,7 @@ using BGKutaisiBot.Types.Logging;
 using BGKutaisiBot.Commands;
 using System.Reflection;
 using Telegram.Bot;
-using System.Text;
+using BGKutaisiBot.Types;
 
 namespace BGKutaisiBot
 {
@@ -31,27 +31,33 @@ namespace BGKutaisiBot
 				if (type is null)
 					return;
 
+				bool isAsyncCommand = type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand));
+
 				lineSplitted = lineSplitted[1..];
-				Type[] types = new Type[lineSplitted.Length + 2];
+				Type[] types = new Type[lineSplitted.Length + (isAsyncCommand ? 2 : 0)];
+				if (isAsyncCommand) 
+				{
 				types[0] = typeof(ITelegramBotClient);
-				types[types.Length - 1] = typeof(CancellationToken);
-				for (int i = 1; i < types.Length - 1; i++)
+					types[^1] = typeof(CancellationToken);
+				}
+				for (int i = (isAsyncCommand ? 1 : 0); i < types.Length - (isAsyncCommand ? 1 : 0); i++)
 					types[i] = typeof(string);
 
-				MethodInfo? methodInfo = type?.GetMethod("RespondAsync", types) ?? type?.GetMethod("Respond", []);
+				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
 				if (methodInfo is null)
 					return;
 
-				List<object?> parameters = [botClient];
+				List<object?> parameters = isAsyncCommand ? [botClient] : [];
 				parameters.AddRange(lineSplitted);
+				if (isAsyncCommand)
 				parameters.Add(cancellationTokenSource.Token);
 
-				if (methodInfo.Name == "RespondAsync") {
+				if (isAsyncCommand) {
 					if (methodInfo.Invoke(null, parameters.ToArray()) is Task task)
 						await task;
 				}
 				else
-					methodInfo.Invoke(null, []);
+					methodInfo.Invoke(null, parameters.ToArray());
 			}
 			BotCommands.Admin.CommandCallback = ExecuteCommand;
 
