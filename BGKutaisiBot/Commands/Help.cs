@@ -1,6 +1,8 @@
-﻿namespace BGKutaisiBot.Commands
+﻿using BGKutaisiBot.Types;
+
+namespace BGKutaisiBot.Commands
 {
-	internal class Help
+	internal class Help : IConsoleCommand
 	{
 		public static void Respond()
 		{

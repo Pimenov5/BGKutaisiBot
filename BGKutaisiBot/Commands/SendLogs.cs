@@ -1,10 +1,11 @@
-﻿using BGKutaisiBot.Types.Logging;
+﻿using BGKutaisiBot.Types;
+using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class SendLogs
+	internal class SendLogs : IAsyncConsoleCommand
 	{
 		public static string Description { get => "Отправить файл лога"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, CancellationToken cancellationToken)
