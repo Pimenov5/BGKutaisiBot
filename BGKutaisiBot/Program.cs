@@ -27,9 +27,14 @@ namespace BGKutaisiBot
 						if (lineSplitted[i] == testChatIdAlias)
 							lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID") ?? lineSplitted[i];
 
-				Type? type = typeof(Program).Assembly.GetType(typeof(Program).Namespace + ".Commands." + lineSplitted[0], false, true);
+				string name = typeof(Program).Namespace + ".{0}." + lineSplitted[0];
+				Type? type = typeof(Program).Assembly.GetType(string.Format(name, "Commands"), false, true);
 				if (type is null)
-					return;
+				{
+					type = typeof(Program).Assembly.GetType(string.Format(name, "BotCommands"), false, true);
+					if (type is null || !(type.GetInterfaces().Contains(typeof(IConsoleCommand)) || type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand))))
+						return;
+				}
 
 				bool isAsyncCommand = type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand));
 
@@ -37,7 +42,7 @@ namespace BGKutaisiBot
 				Type[] types = new Type[lineSplitted.Length + (isAsyncCommand ? 2 : 0)];
 				if (isAsyncCommand) 
 				{
-				types[0] = typeof(ITelegramBotClient);
+					types[0] = typeof(ITelegramBotClient);
 					types[^1] = typeof(CancellationToken);
 				}
 				for (int i = (isAsyncCommand ? 1 : 0); i < types.Length - (isAsyncCommand ? 1 : 0); i++)
@@ -50,7 +55,7 @@ namespace BGKutaisiBot
 				List<object?> parameters = isAsyncCommand ? [botClient] : [];
 				parameters.AddRange(lineSplitted);
 				if (isAsyncCommand)
-				parameters.Add(cancellationTokenSource.Token);
+					parameters.Add(cancellationTokenSource.Token);
 
 				if (isAsyncCommand) {
 					if (methodInfo.Invoke(null, parameters.ToArray()) is Task task)
@@ -69,9 +74,11 @@ namespace BGKutaisiBot
 					if (start)
 					{
 						start = false;
-						string commandLine = args.Length > 0 ? new StringBuilder().AppendJoin(' ', args).ToString() : typeof(Help).Name.ToLower();
-						Console.WriteLine(commandLine);
-						await ExecuteCommand(commandLine);
+						foreach (string commandLine in args)
+						{
+							Console.WriteLine(commandLine);
+							await ExecuteCommand(commandLine);
+						}
 					}
 
 					string? line = Console.ReadLine()?.Trim();
