@@ -4,7 +4,7 @@ using BGKutaisiBot.Types.Logging;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class Admin : BotCommand
+	internal class Admin : BotCommand, IConsoleCommand
 	{
 		const byte LOGIN_TRIES_MAX_COUNT = 3;
 		bool _isFirst = true;
@@ -92,6 +92,25 @@ namespace BGKutaisiBot.BotCommands
 
 			CommandCallback(messageText);
 			return null;
+		}
+		public static void Respond(string action, string strUserId)
+		{
+			if (action.Length > 1)
+				throw new ArgumentException($"\"{action}\" не является символом");
+			if (!long.TryParse(strUserId, out long userId))
+				throw new ArgumentException($"\"{strUserId}\" не является идентификатором пользователя");
+
+			switch (action[0])
+			{
+				case '+':
+					AddAdmin(userId);
+					break;
+				case '-':
+					RemoveAdmin(userId);
+					break;
+				default:
+					throw new ArgumentException($"\"{action}\" не является символом операции");
+			};			
 		}
 	}
 }
