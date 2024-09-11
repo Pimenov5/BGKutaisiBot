@@ -195,15 +195,6 @@ namespace BGKutaisiBot.Types
 						await HandleCallbackQueryAsync(botClient, callbackQuery, callbackData, cancellationToken);
 						break;
 
-					case UpdateType.ChannelPost:
-					case UpdateType.EditedChannelPost:
-						Message? channelPost = update.ChannelPost ?? update.EditedChannelPost;
-						Logs.Instance.Add($"@{channelPost?.From?.Username}: {channelPost?.Text}");
-						if (channelPost != null && channelPost.Chat.Type is ChatType.Private)
-							await new TextMessage("Извините, бот не обрабатывает посты из каналов")
-								{ CancellationToken = cancellationToken }.SendTextMessageAsync(channelPost.Chat.Id, botClient);
-						break;
-
 					default:
 						Logs.Instance.Add(update.Type.ToString());
 						break;
