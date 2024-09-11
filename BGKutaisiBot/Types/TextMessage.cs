@@ -6,7 +6,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Types
 {
-	internal class TextMessage(string text, bool addRollDiceKeyboard = false)
+    internal class TextMessage(string text, bool addRollDiceKeyboard = false)
 	{
 		public string Text = text;
 		public bool AddRollDiceKeyboard = addRollDiceKeyboard;
@@ -34,13 +34,6 @@ namespace BGKutaisiBot.Types
 			Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}):  {this}");
 			return message;
 		}
-		public override string ToString()
-		{
-			int length = this.Text.Length;
-			string result = this.Text.Replace("\n", "\\n").Replace("\r", "\\r");
-			const int MAX_LENGTH = 60;
-			result = result.Length > MAX_LENGTH ? result.Remove(MAX_LENGTH) : result;
-			return $"{result}{(result.Length < length ? " ..." : string.Empty)}";
-		}
+		public override string ToString() => Truncator.Truncate(this.Text);
 	}
 }

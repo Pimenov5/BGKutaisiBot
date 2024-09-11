@@ -10,7 +10,7 @@
 		{
 			_logs.Add(log);
 			if (writeConsole)
-				Console.WriteLine(log);
+				Console.WriteLine(Truncator.Truncate(log.ToString()));
 		}
 		public void AddError(Exception e) => this.Add(new ErrorLog(e), true);
 		public void Add(string text, bool writeConsole) => this.Add(new Log(text), writeConsole);
