@@ -11,7 +11,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.Types
 {
-	internal class TelegramUpdateHandler : IUpdateHandler
+    internal class TelegramUpdateHandler : IUpdateHandler
 	{
 		static readonly Dictionary<long, BotCommand> _chats = [];
 		static Type? GetTypeByName(string? typeName, bool ignoreCase = false)
@@ -137,7 +137,8 @@ namespace BGKutaisiBot.Types
 				}
 			}
 			else
-				await botClient.SendTextMessageAsync(chatId, $"\"{messageText}\" не является командой или ответом на выполняемую команду", cancellationToken: cancellationToken);
+				await new TextMessage("Не является командой или ответом на выполняемую команду") { ReplyToMessageId = message.MessageId, 
+					CancellationToken = cancellationToken }.SendTextMessageAsync(chatId, botClient);
 		}
 
 		static async Task HandleMessageWithPollAsync(ITelegramBotClient botClient, Message message, Poll poll, CancellationToken cancellationToken)
