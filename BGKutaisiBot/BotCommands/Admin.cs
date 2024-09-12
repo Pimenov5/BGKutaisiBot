@@ -40,10 +40,10 @@ namespace BGKutaisiBot.BotCommands
 			}
 		}
 
-		public static Func<string, Task>? CommandCallback { get; set; }
+		public static Func<string[], Task>? CommandCallback { get; set; }
 		public static bool Contains(long id) => _admins.Contains(id);
-		public override TextMessage? Respond(string? messageText, out bool finished) => throw new NotImplementedException();
-		public override TextMessage? Respond(long chatId, string? messageText, out bool finished)
+		public override TextMessage? Respond(string[] args, out bool finished) => throw new NotImplementedException();
+		public override TextMessage? Respond(long chatId, string[] args, out bool finished)
 		{
 			if (CommandCallback is null)
 				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
@@ -63,9 +63,9 @@ namespace BGKutaisiBot.BotCommands
 				else
 				{
 					finished = false;
-					if (string.IsNullOrEmpty(messageText))
+					if (args.Length == 0)
 						return new TextMessage("Введите пароль для авторизации");
-					else if (messageText == password)
+					else if (args.Length == 1 && args[0] == password)
 					{
 						_isFirst = false;
 						_admins.Add(chatId);
@@ -82,15 +82,15 @@ namespace BGKutaisiBot.BotCommands
 				}
 			}
 
-			finished = _isFirst && !string.IsNullOrEmpty(messageText);
+			finished = _isFirst && args.Length != 0;
 			_isFirst = false;
-			if (string.IsNullOrEmpty(messageText))
+			if (args.Length == 0)
 				return new TextMessage("Режим администратора включён, введите команду");
 
-			if (Environment.GetEnvironmentVariable("ADMIN_CHAT_ID_ALIAS") is string alias && messageText.Contains(alias))
-				messageText = messageText.Replace(alias, chatId.ToString());
+			if (Environment.GetEnvironmentVariable("ADMIN_CHAT_ID_ALIAS") is string alias && Array.IndexOf(args, alias) is int index && index >= 0)
+				args[index] = chatId.ToString();
 
-			CommandCallback(messageText);
+			CommandCallback(args);
 			return null;
 		}
 		public static void Respond(string action, string strUserId)

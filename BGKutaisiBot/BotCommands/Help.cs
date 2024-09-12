@@ -6,13 +6,11 @@ namespace BGKutaisiBot.BotCommands
 {
 	internal class Help : BotCommand
 	{
-		public override TextMessage Respond(string? messageText, out bool finished)
+		public override TextMessage Respond(string[] args, out bool finished)
 		{
 			finished = true;
-			string[] commands = messageText?.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? [];
-
 			Type helpType = this.GetType();
-			IEnumerable<Type> types = helpType.Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(BotCommand)) && (commands.Length == 0 || commands.Contains(type.Name.ToLower())));
+			IEnumerable<Type> types = helpType.Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(BotCommand)) && (args.Length == 0 || args.Contains(type.Name.ToLower())));
 
 			StringBuilder stringBuilder = new();
 			foreach (Type type in types)
@@ -20,10 +18,10 @@ namespace BGKutaisiBot.BotCommands
 					stringBuilder.AppendLine($"/{type.Name.ToLower()} {help}\n");
 
 			if (stringBuilder.Length == 0)
-				throw new CancelException(CancelException.Cancel.Current, "не удалось найти команды или инструкции к ним" + commands.Length switch
+				throw new CancelException(CancelException.Cancel.Current, "не удалось найти команды или инструкции к ним" + args.Length switch
 				{
 					0 => string.Empty,
-					_ => " из списка: " + messageText
+					_ => " из списка: " + new StringBuilder(args.Length).AppendJoin(' ', args)
 				});
 
 			return new TextMessage(stringBuilder.ToString().TrimEnd(), true);

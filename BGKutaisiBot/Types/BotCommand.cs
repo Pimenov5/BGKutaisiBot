@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace BGKutaisiBot.Types
 {
-	internal abstract class BotCommand
+	internal abstract class BotCommand : Command
 	{
 		const char CLASS_METHOD_DELIMITER = '.';
 		const char METHOD_ARGS_DELIMITER = '(';
@@ -16,8 +16,8 @@ namespace BGKutaisiBot.Types
 		}
 
 		public virtual bool IsLong { get => false; }
-		public abstract TextMessage? Respond(string? messageText, out bool finished);
-		public virtual TextMessage? Respond(long chatId, string? messageText, out bool finished) => Respond(messageText, out finished);
+		public abstract TextMessage? Respond(string[] args, out bool finished);
+		public virtual TextMessage? Respond(long chatId, string[] args, out bool finished) => Respond(args, out finished);
 		public static bool TryParseCallbackData(string callbackData, out string? typeName, out string? methodName, out string[]? args)
 		{
 			int index = callbackData.IndexOf(CLASS_METHOD_DELIMITER);

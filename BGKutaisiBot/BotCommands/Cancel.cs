@@ -7,6 +7,6 @@ namespace BGKutaisiBot.BotCommands
 	{
 		public static string Description { get => "Отменить текущую команду"; }
 		public static string Instruction { get => "отменяет выполнение текущей команды (ожидающей ответное сообщение от пользователя)"; }
-		public override TextMessage Respond(string? messageText, out bool finished) => throw new CancelException(CancelException.Cancel.Previous);
+		public override TextMessage Respond(string[] args, out bool finished) => throw new CancelException(CancelException.Cancel.Previous);
 	}
 }

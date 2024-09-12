@@ -51,18 +51,17 @@ namespace BGKutaisiBot.BotCommands
 		}
 
 		public override bool IsLong => true;
-		public override TextMessage Respond(string? input, out bool finished)
+		public override TextMessage Respond(string[] args, out bool finished)
 		{
 			finished = false;
-			if (string.IsNullOrEmpty(input))
+			if (args.Length == 0)
 				return new TextMessage("Введите от 3 до 7 имён игроков, разделённых пробелами или переносом строки, например:\n" + EXAMPLE_NAMES);
 
-			string[] names = input.Split(input.Contains('\n') ? "\n" : " ", StringSplitOptions.RemoveEmptyEntries);
-			if (names.Length < 3 || names.Length > 7)
-				return new TextMessage($"\"7 Чудес\" поддерживает 3-7 игроков, введённое вами количество: {names.Length}");
+			if (args.Length < 3 || args.Length > 7)
+				return new TextMessage($"\"7 Чудес\" поддерживает 3-7 игроков, введённое вами количество: {args.Length}");
 
 			finished = true;
-			return GetTextMessage(names);
+			return GetTextMessage(args);
 		}
 	}
 }
