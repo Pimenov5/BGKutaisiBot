@@ -15,19 +15,18 @@ namespace BGKutaisiBot
 			StartBot.OnBotStartedEvent += (Type type, ITelegramBotClient newBotClient) => botClient = newBotClient;
 			using CancellationTokenSource cancellationTokenSource = new();
 
-			async Task ExecuteCommand(string line)
+			async Task ExecuteCommand(string[] args)
 			{
-				string[] lineSplitted = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-				if (lineSplitted.Length == 0)
+				if (args.Length == 0)
 					return;
 
 				string? testChatIdAlias = Environment.GetEnvironmentVariable("TEST_CHAT_ID_ALIAS");
 				if (!string.IsNullOrEmpty(testChatIdAlias))
-					for (int i = 0; i < lineSplitted.Length; i++)
-						if (lineSplitted[i] == testChatIdAlias)
-							lineSplitted[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID") ?? lineSplitted[i];
+					for (int i = 0; i < args.Length; i++)
+						if (args[i] == testChatIdAlias)
+							args[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID") ?? args[i];
 
-				string name = typeof(Program).Namespace + ".{0}." + lineSplitted[0];
+				string name = typeof(Program).Namespace + ".{0}." + args[0];
 				Type? type = typeof(Program).Assembly.GetType(string.Format(name, "Commands"), false, true);
 				if (type is null)
 				{
@@ -38,8 +37,8 @@ namespace BGKutaisiBot
 
 				bool isAsyncCommand = type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand));
 
-				lineSplitted = lineSplitted[1..];
-				Type[] types = new Type[lineSplitted.Length + (isAsyncCommand ? 2 : 0)];
+				args = args[1..];
+				Type[] types = new Type[args.Length + (isAsyncCommand ? 2 : 0)];
 				if (isAsyncCommand) 
 				{
 					types[0] = typeof(ITelegramBotClient);
@@ -48,18 +47,24 @@ namespace BGKutaisiBot
 				for (int i = (isAsyncCommand ? 1 : 0); i < types.Length - (isAsyncCommand ? 1 : 0); i++)
 					types[i] = typeof(string);
 
-				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
-				if (methodInfo is null)
-					return;
 
 				List<object?> parameters = isAsyncCommand ? [botClient] : [];
-				parameters.AddRange(lineSplitted);
-				if (isAsyncCommand)
-					parameters.Add(cancellationTokenSource.Token);
+				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
+				if (methodInfo is null)
+				{
+					methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", [typeof(string[])]) : type?.GetMethod("Respond", [typeof(string[])]);
+					if (methodInfo is null)
+						return;
+					else
+						parameters.Add(args);
+				}
+				else
+					parameters.AddRange(args);
 
 				if (isAsyncCommand) {
+					parameters.Add(cancellationTokenSource.Token);
 					if (methodInfo.Invoke(null, parameters.ToArray()) is Task task)
-						await task;
+					await task;
 				}
 				else
 					methodInfo.Invoke(null, parameters.ToArray());
@@ -77,13 +82,12 @@ namespace BGKutaisiBot
 						foreach (string commandLine in args)
 						{
 							Console.WriteLine(commandLine);
-							await ExecuteCommand(commandLine);
+							await ExecuteCommand(Command.Split(commandLine));
 						}
 					}
 
 					string? line = Console.ReadLine()?.Trim();
-					if (!string.IsNullOrEmpty(line))
-						await ExecuteCommand(line);
+					await ExecuteCommand(Command.Split(line ?? string.Empty));
 				}
 				catch (TargetInvocationException e) when (e.InnerException is ExitException) { break; }
 				catch (Exception e) { Logs.Instance.AddError(e); }

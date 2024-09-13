@@ -109,7 +109,7 @@ namespace BGKutaisiBot.BotCommands
 			+ " В ответ на выбор одной коллекции присылается список её игр (их рейтингом, временем партий и количеством игроков)."
 			+ " Нажатие кнопки с символом одной из этих характеристик сортирует список"; }
 		public override bool IsLong => true;
-		public override TextMessage Respond(string? messageText, out bool finished)
+		public override TextMessage Respond(string[] args, out bool finished)
 		{
 			finished = true;
 			Dictionary<string, string> logins = [];

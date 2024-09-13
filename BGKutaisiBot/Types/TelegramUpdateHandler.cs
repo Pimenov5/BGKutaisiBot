@@ -105,7 +105,7 @@ namespace BGKutaisiBot.Types
 				TextMessage? response = null;
 				try
 				{
-					response = command.Respond(chatId, messageText, out finished);
+					response = command.Respond(chatId, Command.Split(messageText), out finished);
 				}
 				catch (CancelException e)
 				{

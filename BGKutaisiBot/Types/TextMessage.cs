@@ -34,6 +34,6 @@ namespace BGKutaisiBot.Types
 			Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}):  {this}");
 			return message;
 		}
-		public override string ToString() => Truncator.Truncate(this.Text);
+		public override string ToString() => Truncator.Truncate(this.Text, replaceLineBreak: false);
 	}
 }
