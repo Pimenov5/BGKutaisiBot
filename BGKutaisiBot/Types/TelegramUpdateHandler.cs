@@ -123,9 +123,10 @@ namespace BGKutaisiBot.Types
 						response = new(text, true);
 					}
 				}
-				catch (RollDiceException)
+				catch (RollDiceException e)
 				{
-					await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+					for (int i = 0; i < e.Count; i++)
+						await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
 				}
 
 				if (finished)
