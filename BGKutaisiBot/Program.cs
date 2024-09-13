@@ -47,18 +47,24 @@ namespace BGKutaisiBot
 				for (int i = (isAsyncCommand ? 1 : 0); i < types.Length - (isAsyncCommand ? 1 : 0); i++)
 					types[i] = typeof(string);
 
-				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
-				if (methodInfo is null)
-					return;
 
 				List<object?> parameters = isAsyncCommand ? [botClient] : [];
-				parameters.AddRange(args);
-				if (isAsyncCommand)
-					parameters.Add(cancellationTokenSource.Token);
+				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
+				if (methodInfo is null)
+				{
+					methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", [typeof(string[])]) : type?.GetMethod("Respond", [typeof(string[])]);
+					if (methodInfo is null)
+						return;
+					else
+						parameters.Add(args);
+				}
+				else
+					parameters.AddRange(args);
 
 				if (isAsyncCommand) {
+					parameters.Add(cancellationTokenSource.Token);
 					if (methodInfo.Invoke(null, parameters.ToArray()) is Task task)
-						await task;
+					await task;
 				}
 				else
 					methodInfo.Invoke(null, parameters.ToArray());
