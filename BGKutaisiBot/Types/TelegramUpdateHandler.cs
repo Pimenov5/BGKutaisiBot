@@ -149,7 +149,7 @@ namespace BGKutaisiBot.Types
 			Dictionary<string, int> options = [];
 			foreach (var item in poll.Options)
 				if (item.VoterCount != 0)
-					options.Add(item.Text.Contains('+') ? item.Text.Remove(item.Text.IndexOf('+')) : item.Text, item.VoterCount);
+					options.Add(item.Text.Contains('+') ? item.Text.Remove(item.Text.IndexOf('+')).TrimEnd() : item.Text, item.VoterCount);
 
 			long chatId = message.Chat.Id;
 			if (options.Count == 0)
