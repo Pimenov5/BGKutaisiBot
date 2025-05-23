@@ -7,7 +7,7 @@ namespace BGKutaisiBot.BotCommands
 	{
 		public static string Description { get => "Бросить кубик D6"; }
 		public static string Instruction { get => "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например:\n/dice 2"; }
-		public override TextMessage? Respond(string[] args) {
+		public static TextMessage? Respond(string[] args) {
 			uint count;
 			switch (args.Length)
 			{

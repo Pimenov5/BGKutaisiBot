@@ -17,8 +17,6 @@ namespace BGKutaisiBot.Types
 		}
 
 		public virtual bool IsLong { get => false; }
-		public abstract TextMessage? Respond(string[] args);
-		public virtual TextMessage? Respond(long chatId, string[] args) => Respond(args);
 		
 		public virtual string[] GetArguments(Message message)
 		{

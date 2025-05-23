@@ -109,7 +109,7 @@ namespace BGKutaisiBot.BotCommands
 			+ " В ответ на выбор одной коллекции присылается список её игр (их рейтингом, временем партий и количеством игроков)."
 			+ " Нажатие кнопки с символом одной из этих характеристик сортирует список"; }
 		public override bool IsLong => true;
-		public override TextMessage Respond(string[] args)
+		public static TextMessage Respond()
 		{
 			Dictionary<string, string> logins = [];
 			const string USER_ALIAS_VARIABLE_NAME_PREFIX = "COLLECTION_OWNER_LOGIN_";

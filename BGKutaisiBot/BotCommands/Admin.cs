@@ -46,7 +46,7 @@ namespace BGKutaisiBot.BotCommands
 
 		public override string[] GetArguments(Message message) => [message.Chat.Id.ToString(), ..base.GetArguments(message)];
 
-		public override TextMessage? Respond(string[] args)
+		public TextMessage? Respond(string[] args)
 		{
 			if (CommandCallback is null)
 				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
