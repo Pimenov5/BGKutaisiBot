@@ -1,7 +1,6 @@
 ﻿using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
-using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.BotCommands
 {
@@ -43,20 +42,14 @@ namespace BGKutaisiBot.BotCommands
 
 		public static Func<string[], Task>? CommandCallback { get; set; }
 		public static bool Contains(long id) => _admins.Contains(id);
-
-		public override string[] GetArguments(Message message) => [message.Chat.Id.ToString(), ..base.GetArguments(message)];
-
-		public TextMessage? Respond(string[] args)
+		public override TextMessage? Respond(string[] args) => throw new NotImplementedException();
+		public override TextMessage? Respond(long chatId, string[] args)
 		{
 			if (CommandCallback is null)
 				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
 			if (Environment.GetEnvironmentVariable("BOT_ADMIN_PASSWORD") is not string password)
 				throw new CancelException(CancelException.Cancel.Current, "в переменных окружения отсутствует пароль администратора");
 
-			if (args.Length == 0 || !long.TryParse(args[0], out long chatId))
-				throw new ArgumentException("Первым аргументом команды должен быть ID пользователя", nameof(args));
-
-			args = args[1..];
 			if (!Contains(chatId))
 			{
 				if (!_users.ContainsKey(chatId))

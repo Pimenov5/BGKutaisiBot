@@ -51,7 +51,7 @@ namespace BGKutaisiBot.BotCommands
 		}
 
 		public override bool IsLong => true;
-		public TextMessage Respond(string[] args)
+		public override TextMessage Respond(string[] args)
 		{
 			this.IsCompleted = false;
 			if (args.Length == 0)
