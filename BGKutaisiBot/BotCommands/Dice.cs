@@ -3,7 +3,7 @@ using BGKutaisiBot.Types.Exceptions;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class Dice : BotCommand, IConsoleCommand
+	internal class Dice : BotCommand
 	{
 		public static string Description { get => "Бросить кубик D6"; }
 		public static string Instruction { get => "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например:\n/dice 2"; }
