@@ -15,9 +15,7 @@ namespace BGKutaisiBot.Types
 			return type.Name + CLASS_METHOD_DELIMITER
 				+ $"{methodInfo.Name}{(args is null ? string.Empty : $"({string.Concat(args.ToList().ConvertAll<string>((string arg) => arg + (args.Last() == arg ? string.Empty : ",")))})")}";
 		}
-
-		public virtual bool IsLong { get => false; }
-		
+				
 		public virtual string[] GetArguments(Message message)
 		{
 			string[] args = string.IsNullOrEmpty(message.Text) ? [] : Command.Split(message.Text);
