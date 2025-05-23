@@ -95,39 +95,85 @@ namespace BGKutaisiBot.Types
 				command = (BotCommand)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}"));
 				if (command is BotForm)
 					_chats.Add(chatId, command);
-				messageText = messageText.Replace($"/{commandName}", "").TrimStart();
 			}
 
 			if (command is not null || _chats.TryGetValue(chatId, out command))
 			{
+				List<object> parameters = [];
+				List<Type> types = new(parameters.Count);
+				Type commandType = command.GetType();
+
+				MethodInfo? GetMethodInfo(Action<List<object>>? callback)
+				{
+					callback?.Invoke(parameters);
+
+					types.Clear();
+					types.Capacity = parameters.Count;
+					foreach (object item in parameters)
+						types.Add(item.GetType());
+
+					const string METHOD_NAME = "Respond";
+					const string ASYNC_METHOD_NAME = METHOD_NAME + "Async";
+					return commandType.GetMethod(METHOD_NAME, [..types]) ?? commandType.GetMethod(ASYNC_METHOD_NAME, [..types]);
+				}
+
+				MethodInfo? methodInfo = GetMethodInfo(null); // Respond()
+				if (methodInfo is null)
+				{
+					string[] args = command.GetArguments(message);
+					methodInfo ??= GetMethodInfo((List<object> parameters) => parameters.Add(args))  // Respond(string[] args)
+						?? GetMethodInfo((List<object> parameters) => parameters.Insert(0, botClient)); // Respond(ITelegramBotClient botClient, string[] args)
+				}
+
+				if (methodInfo is null)
+					throw new NullReferenceException($"Не удалось вызвать /{command.GetType().Name.ToLower()}");
+
 				if (command.IsLong)
 					await botClient.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: cancellationToken);
 
 				TextMessage? response = null;
 				try
 				{
-					response = command.Respond(chatId, Command.Split(messageText));
-				}
-				catch (CancelException e)
-				{
-					string? text = e.Cancelling switch
+					object? result = methodInfo.Invoke(command, [..parameters]);
+					response = result switch
 					{
-						CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
-						CancelException.Cancel.Current => $"Выполнение /{command.GetType().Name.ToLower()} отменено",
-						_ => null
+						null => null,
+						TextMessage => (TextMessage)result,
+						string => new TextMessage((string)result),
+						Task<string> => new TextMessage(await (Task<string>)result),
+						Task<TextMessage> => await (Task<TextMessage>)result,
+						Task => null,
+						_ => throw new InvalidCastException($"Неизвестный тип результата: {result.GetType().Name}"),
 					};
 
-					if (!string.IsNullOrEmpty(text))
-					{
-						if (!string.IsNullOrEmpty(e.Reason))
-							text = $"{text}. Причина: {e.Reason}";
-						response = new(text, true);
-					}
+					if (result is Task task && !task.IsCompleted)
+						await task;
 				}
-				catch (RollDiceException e)
+				catch (Exception exception)
 				{
-					for (int i = 0; i < e.Count; i++)
-						await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+					if (exception.InnerException is CancelException e)
+					{
+						string? text = e.Cancelling switch
+						{
+							CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
+							CancelException.Cancel.Current => $"Выполнение /{command.GetType().Name.ToLower()} отменено",
+							_ => null
+						};
+
+						if (!string.IsNullOrEmpty(text))
+						{
+							if (!string.IsNullOrEmpty(e.Reason))
+								text = $"{text}. Причина: {e.Reason}";
+							response = new(text, true);
+						}
+					}
+					else if (exception.InnerException is RollDiceException diceException)
+					{
+						for (int i = 0; i < diceException.Count; i++)
+							await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+					}
+					else
+						throw;
 				}
 
 				if (command is BotForm botForm && botForm.IsCompleted)
