@@ -4,7 +4,6 @@ using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
 {
@@ -13,9 +12,9 @@ namespace BGKutaisiBot.Commands
 	{
 		public static new async Task RespondAsync(ITelegramBotClient botClient, string chatId, string pollCollectionId, CancellationToken cancellationToken)
 		{
-			string question = PreparePoll(int.Parse(pollCollectionId), out string[] options, out IReplyMarkup? replyMarkup);
+			Poll poll = await PreparePollAsync(int.Parse(pollCollectionId));
 
-			string text = question + "\nГолосуйте за одну или несколько игр в комментариях";
+			string text = poll.Question + "\nГолосуйте за одну или несколько игр в комментариях";
 			await new TextMessage("> " + text) { ParseMode = ParseMode.MarkdownV2, CancellationToken = cancellationToken }.
 				SendTextMessageAsync(chatId, botClient);
 
@@ -25,9 +24,9 @@ namespace BGKutaisiBot.Commands
 					return;
 
 				TelegramUpdateHandler.NotPrivateTextMessageEvent -= HandleNotPrivateTextMessage;
-				Message pollMessage = await botClient.SendPollAsync(message.Chat.Id, question, options, isAnonymous: false, allowsMultipleAnswers: true, replyToMessageId: message.MessageId,
-					replyMarkup: replyMarkup, cancellationToken: cancellationToken) ?? throw new NullReferenceException($"Не удалось отправить в {message.Chat.Id} опрос \"{question}\"");
-				Logs.Instance.Add($"{(pollMessage.Chat.Username is null ? $"ID {pollMessage.Chat.Id}" : $"@{pollMessage.Chat.Username}")} получил сообщение ID {pollMessage.MessageId} c опросом \"{question}\"");
+				Message pollMessage = await botClient.SendPollAsync(message.Chat.Id, poll.Question, poll.Options, isAnonymous: false, allowsMultipleAnswers: true, replyToMessageId: message.MessageId,
+					replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken) ?? throw new NullReferenceException($"Не удалось отправить в {message.Chat.Id} опрос \"{poll.Question}\"");
+				Logs.Instance.Add($"{(pollMessage.Chat.Username is null ? $"ID {pollMessage.Chat.Id}" : $"@{pollMessage.Chat.Username}")} получил сообщение ID {pollMessage.MessageId} c опросом \"{poll.Question}\"");
 			}
 
 			TelegramUpdateHandler.NotPrivateTextMessageEvent += HandleNotPrivateTextMessage;
