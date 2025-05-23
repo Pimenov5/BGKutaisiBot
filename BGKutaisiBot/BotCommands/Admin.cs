@@ -4,7 +4,7 @@ using BGKutaisiBot.Types.Logging;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class Admin : BotCommand
+	internal class Admin : BotForm
 	{
 		const byte LOGIN_TRIES_MAX_COUNT = 3;
 		bool _isFirst = true;
@@ -42,8 +42,8 @@ namespace BGKutaisiBot.BotCommands
 
 		public static Func<string[], Task>? CommandCallback { get; set; }
 		public static bool Contains(long id) => _admins.Contains(id);
-		public override TextMessage? Respond(string[] args, out bool finished) => throw new NotImplementedException();
-		public override TextMessage? Respond(long chatId, string[] args, out bool finished)
+		public override TextMessage? Respond(string[] args) => throw new NotImplementedException();
+		public override TextMessage? Respond(long chatId, string[] args)
 		{
 			if (CommandCallback is null)
 				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
@@ -57,12 +57,12 @@ namespace BGKutaisiBot.BotCommands
 
 				if (_users[chatId] >= LOGIN_TRIES_MAX_COUNT)
 				{
-					finished = true;
+					this.IsCompleted = true;
 					return new TextMessage("Вы превысили количество попыток авторизации");
 				}
 				else
 				{
-					finished = false;
+					this.IsCompleted = false;
 					if (args.Length == 0)
 						return new TextMessage("Введите пароль для авторизации");
 					else if (args.Length == 1 && args[0] == password)
@@ -76,13 +76,13 @@ namespace BGKutaisiBot.BotCommands
 					{
 						++_users[chatId];
 						if (_users[chatId] >= LOGIN_TRIES_MAX_COUNT)
-							finished = true;
+							this.IsCompleted = true;
 						return new TextMessage($"Неверный пароль, осталось попыток: {LOGIN_TRIES_MAX_COUNT - _users[chatId]}"); 
 					}
 				}
 			}
 
-			finished = _isFirst && args.Length != 0;
+			this.IsCompleted = _isFirst && args.Length != 0;
 			_isFirst = false;
 			if (args.Length == 0)
 				return new TextMessage("Режим администратора включён, введите команду");

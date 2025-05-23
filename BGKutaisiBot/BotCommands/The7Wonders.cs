@@ -5,7 +5,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class The7Wonders : BotCommand
+	internal class The7Wonders : BotForm
 	{
 		const string NAMES_DELIMITER = " - ";
 		const string KEYBOARD_BUTTON_TEXT = "🔀";
@@ -51,21 +51,17 @@ namespace BGKutaisiBot.BotCommands
 		}
 
 		public override bool IsLong => true;
-		public override TextMessage Respond(string[] args, out bool finished)
+		public override TextMessage Respond(string[] args)
 		{
-			finished = false;
+			this.IsCompleted = false;
 			if (args.Length == 0)
 				return new TextMessage("Введите от 3 до 7 имён игроков, разделённых пробелами или переносом строки, например:\n" + EXAMPLE_NAMES);
 
 			if (args.Length < 3 || args.Length > 7)
 				return new TextMessage($"\"7 Чудес\" поддерживает 3-7 игроков, введённое вами количество: {args.Length}");
 
-			finished = true;
+			this.IsCompleted = true;
 			return GetTextMessage(args);
-		}
-		public static void Respond(string[] args)
-		{
-			Console.WriteLine(new The7Wonders().Respond(args, out bool finished));
 		}
 	}
 }
