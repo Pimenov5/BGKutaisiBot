@@ -4,9 +4,11 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Tesera.Models;
 using Tesera.Types.Enums;
+using BGKutaisiBot.Attributes;
 
 namespace BGKutaisiBot.Commands
 {
+	[ConsoleCommand("Отправить опрос с играми из коллекции")]
 	internal class SendPoll
 	{
 		static readonly Lazy<HttpClient> _lazyHttpClient = new();
@@ -48,7 +50,6 @@ namespace BGKutaisiBot.Commands
 			return collectionInfo.Title;
 		}
 
-		public static string Description { get => "Отправить опрос с играми из коллекции"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string pollCollectionId, CancellationToken cancellationToken)
 		{
 			string question = PreparePoll(int.Parse(pollCollectionId), out string[] options, out IReplyMarkup? replyMarkup);

@@ -1,17 +1,19 @@
-﻿using BGKutaisiBot.Types;
+﻿using BGKutaisiBot.Attributes;
+using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Logging;
+using System.Reflection;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
+	[ConsoleCommand("Запустить бота")]
 	internal class StartBot
 	{
 		public delegate void OnBotStartedHandler(Type type, ITelegramBotClient botClient);
 		public static event OnBotStartedHandler? OnBotStartedEvent;
 
-		public static string Description { get => "Запустить бота"; }
 		public static async Task RespondAsync(ITelegramBotClient? telegramBotClient, string botToken, CancellationToken cancellationToken)
 		{
 			if (telegramBotClient is not null)
@@ -24,8 +26,8 @@ namespace BGKutaisiBot.Commands
 			List<Telegram.Bot.Types.BotCommand> botCommands = [];
 			IEnumerable<Type> types = typeof(StartBot).Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.BotCommand)));
 			foreach (Type type in types)
-				if (type.GetProperty("Description") is { } property && property.GetValue(null) is { } propertyValue && propertyValue is string description)
-					botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = description });
+				if (type.GetCustomAttribute<BotCommandAttribute>() is BotCommandAttribute attribute && !string.IsNullOrEmpty(attribute.Description))
+					botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = attribute.Description });
 
 			await botClient.SetMyCommandsAsync(botCommands);
 			botClient.StartReceiving(new TelegramUpdateHandler(), new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);

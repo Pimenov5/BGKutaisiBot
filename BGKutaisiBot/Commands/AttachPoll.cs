@@ -1,4 +1,5 @@
-﻿using BGKutaisiBot.Types;
+﻿using BGKutaisiBot.Attributes;
+using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -7,10 +8,9 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.Commands
 {
+	[ConsoleCommand("Отправить опрос в комментарии в новому сообщению")]
 	internal class AttachPoll : SendPoll
 	{
-		public static new string Description { get => "Отправить опрос в комментарии в новому сообщению"; }
-
 		public static new async Task RespondAsync(ITelegramBotClient botClient, string chatId, string pollCollectionId, CancellationToken cancellationToken)
 		{
 			string question = PreparePoll(int.Parse(pollCollectionId), out string[] options, out IReplyMarkup? replyMarkup);

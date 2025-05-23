@@ -2,12 +2,13 @@
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using System.Globalization;
+using BGKutaisiBot.Attributes;
 
 namespace BGKutaisiBot.Commands
 {
+	[ConsoleCommand("Отправить уведомление об игротеке")]
 	internal class SendNotice
 	{
-		public static string Description { get => "Отправить уведомление об игротеке"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string arg1, string arg2, CancellationToken cancellationToken)
 		{
 			const string TEXT_MESSAGE =
