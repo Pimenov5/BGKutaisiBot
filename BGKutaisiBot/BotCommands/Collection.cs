@@ -21,20 +21,19 @@ namespace BGKutaisiBot.BotCommands
 		enum SortBy { Ratings, Playtimes, Players, Titles }
 		static readonly Lazy<TeseraClient> _lazyTeseraClient = new();
 
-		static TextMessage GetTextMessage(string userLogin, SortBy sortBy)
+		static async Task<TextMessage> GetTextMessageAsync(string userLogin, SortBy sortBy)
 		{
-			IEnumerable<CustomCollectionGameInfo> gamesInfo = _lazyTeseraClient.Value.Get<IEnumerable<CustomCollectionGameInfo>>(
-				new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
+			IEnumerable<CustomCollectionGameInfo> gamesInfo = await _lazyTeseraClient.Value.GetAsync(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
 				?? throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
 			using (BlockingCollection<GameInfo> collection = new(gamesInfo.Count()))
 			{
-				Parallel.ForEach(gamesInfo, (CustomCollectionGameInfo item) =>
+				await Parallel.ForEachAsync(gamesInfo, async (CustomCollectionGameInfo item, CancellationToken cancellationToken) =>
 				{
-					GameInfoResponse? game = string.IsNullOrEmpty(item.Game.Alias) ? null : _lazyTeseraClient.Value.Get<GameInfoResponse>(new Tesera.API.Games(item.Game.Alias));
+					GameInfoResponse? game = string.IsNullOrEmpty(item.Game.Alias) ? null : await _lazyTeseraClient.Value.GetAsync(new Tesera.API.Games(item.Game.Alias));
 					if (game is not null)
-						collection.Add(game.Game);
+						collection.Add(game.Game, cancellationToken);
 					else
 						Logs.Instance.Add("Не удалось получить информацию об игре " + item.Game.Alias ?? item.Game.Id.ToString());
 				});
@@ -90,7 +89,7 @@ namespace BGKutaisiBot.BotCommands
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
 				{
-					string callbackData = BotCommand.GetCallbackData(typeof(Collection), nameof(Collection.GetCollection), [userLogin, Enum.GetName(values[i])
+					string callbackData = BotCommand.GetCallbackData(typeof(Collection), nameof(Collection.GetCollectionAsync), [userLogin, Enum.GetName(values[i])
 						?? throw new NullReferenceException($"Не удалось получить имя для значения \"{values[i]}\" типа {typeof(SortBy).Name}")]);
 					buttons.Add(new InlineKeyboardButton(values[i] switch {
 						SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" , _ => "?"
@@ -99,16 +98,16 @@ namespace BGKutaisiBot.BotCommands
 
 			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
 		}
-		
-		public static TextMessage GetCollection(string userLogin, string value)
+
+		public static async Task<TextMessage> GetCollectionAsync(string userLogin, string value)
 		{
 			if (!Enum.TryParse(typeof(SortBy), value, out object? result))
 				throw new CancelException(CancelException.Cancel.Current, $"не удалось выделить тип сортировки из \"{value}\"");
 
-			return GetTextMessage(userLogin, (SortBy)result);			
+			return await GetTextMessageAsync(userLogin, (SortBy)result);
 		}
 
-		public static TextMessage Respond()
+		public static async Task<TextMessage> RespondAsync()
 		{
 			Dictionary<string, string> logins = [];
 			const string USER_ALIAS_VARIABLE_NAME_PREFIX = "COLLECTION_OWNER_LOGIN_";
@@ -125,7 +124,7 @@ namespace BGKutaisiBot.BotCommands
 
 			List<UserFullInfo> users = [];
 			foreach (string login in logins.Keys)
-				if (_lazyTeseraClient.Value.Get<UserFullInfoResponse>(new Tesera.API.User(login))?.User is { } user)
+				if ((await _lazyTeseraClient.Value.GetAsync<UserFullInfoResponse>(new Tesera.API.User(login)))?.User is { } user)
 					users.Add(user);
 
 			if (users.Count == 0)
@@ -141,7 +140,7 @@ namespace BGKutaisiBot.BotCommands
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
 			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
-				{ CallbackData = GetCallbackData(typeof(Collection), nameof(Collection.GetCollection), [logins[user.Login ?? string.Empty], "Titles"]) }));
+				{ CallbackData = GetCallbackData(typeof(Collection), nameof(Collection.GetCollectionAsync), [logins[user.Login ?? string.Empty], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
 		}
