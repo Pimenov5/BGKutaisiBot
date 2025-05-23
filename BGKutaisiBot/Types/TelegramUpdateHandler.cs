@@ -35,12 +35,21 @@ namespace BGKutaisiBot.Types
 			{
 				object?[]? parameters = args is not null && args.Length != 0 ? args : methodInfo?.GetParameters().Length == 1 && callbackQuery.Message?.Text is string text ? [text] : null;
 				response = methodInfo?.Invoke(null, parameters);
+				if (response is Task task)
+					await task;
+
+				response = response switch
+				{
+					string => new TextMessage((string)response),
+					Task<string> => new TextMessage(await (Task<string>)response),
+					Task<TextMessage> => await (Task<TextMessage>)response,
+					_ => response
+				};
 			}
 			catch (CancelException e)
 			{
 				reason = e.Reason;
 			}
-
 
 			if (response is TextMessage textMessage)
 			{
