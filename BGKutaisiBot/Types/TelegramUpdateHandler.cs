@@ -77,7 +77,7 @@ namespace BGKutaisiBot.Types
 				return;
 			}
 
-			BotCommand? prevCommand = null;
+			BotCommand? prevCommand = null, command = null;
 			if (messageText.StartsWith('/'))
 			{
 				string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
@@ -92,20 +92,21 @@ namespace BGKutaisiBot.Types
 				if (prevCommand is not null)
 					_chats.Remove(chatId);
 
-				_chats.Add(chatId, (BotCommand)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}")));
+				command = (BotCommand)(type.GetConstructor([])?.Invoke([]) ?? throw new NullReferenceException($"Не удалось создать объект класса {type.FullName}"));
+				if (command is BotForm)
+					_chats.Add(chatId, command);
 				messageText = messageText.Replace($"/{commandName}", "").TrimStart();
 			}
 
-			if (_chats.TryGetValue(chatId, out BotCommand? command))
+			if (command is not null || _chats.TryGetValue(chatId, out command))
 			{
 				if (command.IsLong)
 					await botClient.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: cancellationToken);
 
-				bool finished = true;
 				TextMessage? response = null;
 				try
 				{
-					response = command.Respond(chatId, Command.Split(messageText), out finished);
+					response = command.Respond(chatId, Command.Split(messageText));
 				}
 				catch (CancelException e)
 				{
@@ -129,7 +130,7 @@ namespace BGKutaisiBot.Types
 						await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
 				}
 
-				if (finished)
+				if (command is BotForm botForm && botForm.IsCompleted)
 					_chats.Remove(chatId);
 				if (response is not null)
 				{

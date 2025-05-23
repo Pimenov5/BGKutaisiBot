@@ -6,9 +6,8 @@ namespace BGKutaisiBot.BotCommands
 {
 	internal class Help : BotCommand
 	{
-		public override TextMessage Respond(string[] args, out bool finished)
+		public override TextMessage Respond(string[] args)
 		{
-			finished = true;
 			Type helpType = this.GetType();
 			IEnumerable<Type> types = helpType.Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(BotCommand)) && (args.Length == 0 || args.Contains(type.Name.ToLower())));
 

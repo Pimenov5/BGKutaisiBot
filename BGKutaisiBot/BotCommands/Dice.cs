@@ -7,7 +7,7 @@ namespace BGKutaisiBot.BotCommands
 	{
 		public static string Description { get => "Бросить кубик D6"; }
 		public static string Instruction { get => "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например:\n/dice 2"; }
-		public override TextMessage? Respond(string[] args, out bool finished) {
+		public override TextMessage? Respond(string[] args) {
 			uint count;
 			switch (args.Length)
 			{
@@ -17,7 +17,6 @@ namespace BGKutaisiBot.BotCommands
 				case 1 when uint.TryParse(args[0], out count):
 					break;
 				default:
-					finished = true;
 					return new TextMessage((args.Length == 1 ? $"\"{args[0]}\" не является числом бросков" : "Команда имеет только один параметр"));
 
 			}
