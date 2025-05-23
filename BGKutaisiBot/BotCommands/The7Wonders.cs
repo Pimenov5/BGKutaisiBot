@@ -5,7 +5,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class The7Wonders : BotCommand, IConsoleCommand
+	internal class The7Wonders : BotCommand
 	{
 		const string NAMES_DELIMITER = " - ";
 		const string KEYBOARD_BUTTON_TEXT = "🔀";

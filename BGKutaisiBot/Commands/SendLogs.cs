@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class SendLogs : IAsyncConsoleCommand
+	internal class SendLogs
 	{
 		public static string Description { get => "Отправить файл лога"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, CancellationToken cancellationToken)

@@ -4,7 +4,7 @@ using BGKutaisiBot.Types.Logging;
 
 namespace BGKutaisiBot.BotCommands
 {
-	internal class Admin : BotCommand, IConsoleCommand
+	internal class Admin : BotCommand
 	{
 		const byte LOGIN_TRIES_MAX_COUNT = 3;
 		bool _isFirst = true;

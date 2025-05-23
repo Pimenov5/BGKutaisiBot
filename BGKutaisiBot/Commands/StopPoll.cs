@@ -1,10 +1,9 @@
-﻿using BGKutaisiBot.Types;
-using BGKutaisiBot.Types.Logging;
+﻿using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 
 namespace BGKutaisiBot.Commands
 {
-	internal class StopPoll : IAsyncConsoleCommand
+	internal class StopPoll
 	{
 		public static string Description { get => "Остановить опрос"; }
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string messageId, CancellationToken cancellationToken)

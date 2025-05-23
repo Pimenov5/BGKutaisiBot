@@ -27,47 +27,52 @@ namespace BGKutaisiBot
 							args[i] = Environment.GetEnvironmentVariable("TEST_CHAT_ID") ?? args[i];
 
 				string name = typeof(Program).Namespace + ".{0}." + args[0];
-				Type? type = typeof(Program).Assembly.GetType(string.Format(name, "Commands"), false, true);
+				Type? type = typeof(Program).Assembly.GetType(string.Format(name, "Commands"), false, true)
+					?? typeof(Program).Assembly.GetType(string.Format(name, "BotCommands"), false, true);
+
 				if (type is null)
+					return;
+
+				List<object?> parameters = [..args[1..]];
+				List<Type> types = [];
+				void UpdateTypes()
 				{
-					type = typeof(Program).Assembly.GetType(string.Format(name, "BotCommands"), false, true);
-					if (type is null || !(type.GetInterfaces().Contains(typeof(IConsoleCommand)) || type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand))))
-						return;
+					if (types.Count > 0)
+						types.Clear();
+
+					types.Capacity = parameters.Count;
+					foreach (object? item in parameters)
+						if (item is not null)
+							types.Add(item.GetType());
 				}
+				UpdateTypes();
 
-				bool isAsyncCommand = type.GetInterfaces().Contains(typeof(IAsyncConsoleCommand));
+				const string METHOD_NAME = "Respond";
+				const string ASYNC_METHOD_NAME = METHOD_NAME + "Async";
+				MethodInfo? methodInfo = type.GetMethod(METHOD_NAME, [..types])
+					?? type.GetMethod(ASYNC_METHOD_NAME, [typeof(ITelegramBotClient), ..types, cancellationTokenSource.Token.GetType()]);
 
-				args = args[1..];
-				Type[] types = new Type[args.Length + (isAsyncCommand ? 2 : 0)];
-				if (isAsyncCommand) 
-				{
-					types[0] = typeof(ITelegramBotClient);
-					types[^1] = typeof(CancellationToken);
-				}
-				for (int i = (isAsyncCommand ? 1 : 0); i < types.Length - (isAsyncCommand ? 1 : 0); i++)
-					types[i] = typeof(string);
-
-
-				List<object?> parameters = isAsyncCommand ? [botClient] : [];
-				MethodInfo? methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", types) : type?.GetMethod("Respond", types);
 				if (methodInfo is null)
 				{
-					methodInfo = isAsyncCommand ? type?.GetMethod("RespondAsync", [typeof(string[])]) : type?.GetMethod("Respond", [typeof(string[])]);
-					if (methodInfo is null)
-						return;
-					else
-						parameters.Add(args);
-				}
-				else
-					parameters.AddRange(args);
+					parameters.Clear();
+					parameters.Add(args[1..]);
+					UpdateTypes();
 
-				if (isAsyncCommand) {
-					parameters.Add(cancellationTokenSource.Token);
-					if (methodInfo.Invoke(null, parameters.ToArray()) is Task task)
-					await task;
+					methodInfo = type.GetMethod(METHOD_NAME, [..types])
+						?? type.GetMethod(ASYNC_METHOD_NAME, [typeof(ITelegramBotClient), ..types, cancellationTokenSource.Token.GetType()]);
 				}
-				else
-					methodInfo.Invoke(null, parameters.ToArray());
+
+				if (methodInfo is null)
+					return;
+
+				if (methodInfo.Name.Equals(ASYNC_METHOD_NAME))
+				{
+					parameters.Insert(0, botClient);
+					parameters.Add(cancellationTokenSource.Token);
+				}
+
+				if (methodInfo.Invoke(null, [..parameters]) is Task task)
+					await task;
 			}
 			BotCommands.Admin.CommandCallback = ExecuteCommand;
 
