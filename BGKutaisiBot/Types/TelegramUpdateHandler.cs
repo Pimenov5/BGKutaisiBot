@@ -1,4 +1,5 @@
-﻿using BGKutaisiBot.BotCommands;
+﻿using BGKutaisiBot.Attributes;
+using BGKutaisiBot.BotCommands;
 using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using System.Reflection;
@@ -128,8 +129,8 @@ namespace BGKutaisiBot.Types
 				if (methodInfo is null)
 					throw new NullReferenceException($"Не удалось вызвать /{command.GetType().Name.ToLower()}");
 
-				if (command.IsLong)
-					await botClient.SendChatActionAsync(chatId, ChatAction.Typing, cancellationToken: cancellationToken);
+				if (command.GetType().GetCustomAttribute<BotCommandAttribute>() is BotCommandAttribute attribute && Enum.IsDefined(typeof(ChatAction), attribute.ChatAction))
+					await botClient.SendChatActionAsync(chatId, (ChatAction)attribute.ChatAction, cancellationToken: cancellationToken);
 
 				TextMessage? response = null;
 				try

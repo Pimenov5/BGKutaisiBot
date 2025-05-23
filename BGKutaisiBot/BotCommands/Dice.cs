@@ -1,12 +1,12 @@
-﻿using BGKutaisiBot.Types;
+﻿using BGKutaisiBot.Attributes;
+using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand("Бросить кубик D6", "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например: /dice 2")]
 	internal class Dice : BotCommand
 	{
-		public static string Description { get => "Бросить кубик D6"; }
-		public static string Instruction { get => "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например:\n/dice 2"; }
 		public static TextMessage? Respond(string[] args) {
 			uint count;
 			switch (args.Length)

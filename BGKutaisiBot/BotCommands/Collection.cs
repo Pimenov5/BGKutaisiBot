@@ -9,9 +9,13 @@ using System.Text;
 using BGKutaisiBot.Types.Exceptions;
 using System.Collections.Concurrent;
 using BGKutaisiBot.Types.Logging;
+using BGKutaisiBot.Attributes;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand("Коллекции настольных игр для игротек", "отправляет ссылки на коллекции настольных игр для игротек."
+			+ " В ответ на выбор одной коллекции присылается список её игр (их рейтингом, временем партий и количеством игроков)."
+			+ " Нажатие кнопки с символом одной из этих характеристик сортирует список", (int)ChatAction.Typing)]
 	internal class Collection : BotCommand
 	{
 		enum SortBy { Ratings, Playtimes, Players, Titles }
@@ -104,11 +108,6 @@ namespace BGKutaisiBot.BotCommands
 			return GetTextMessage(userLogin, (SortBy)result);			
 		}
 
-		public static string Description { get => "Коллекции настольных игр для игротек"; }
-		public static string Instruction { get => "отправляет ссылки на коллекции настольных игр для игротек."
-			+ " В ответ на выбор одной коллекции присылается список её игр (их рейтингом, временем партий и количеством игроков)."
-			+ " Нажатие кнопки с символом одной из этих характеристик сортирует список"; }
-		public override bool IsLong => true;
 		public static TextMessage Respond()
 		{
 			Dictionary<string, string> logins = [];

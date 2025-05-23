@@ -1,10 +1,15 @@
 ﻿using System.Text;
+using BGKutaisiBot.Attributes;
 using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand("Рандомайзер планшетов для \"7 Чудес\"", "присылает перемешанный список игроков (от 3 до 7) и их планшетов для игры \"7 чудес\"."
+			+ $" Нажатие {KEYBOARD_BUTTON_TEXT} ещё раз перемешивает игроков и их планшеты из общего списка."
+			+ $" Имена игроков можно отправлять как в отдельном сообщении, так и в одном с командой, например: /the7wonders {EXAMPLE_NAMES}", (int)ChatAction.Typing)]
 	internal class The7Wonders : BotForm
 	{
 		const string NAMES_DELIMITER = " - ";
@@ -27,11 +32,6 @@ namespace BGKutaisiBot.BotCommands
 			};
 		}
 
-		public static string Description { get => "Рандомайзер планшетов для \"7 Чудес\""; }
-		public static string Instruction { get => $"присылает перемешанный список игроков (от 3 до 7) и их планшетов для игры \"7 чудес\"."
-			+ $" Нажатие {KEYBOARD_BUTTON_TEXT} ещё раз перемешивает игроков и их планшеты из общего списка." 
-			+ $" Имена игроков можно отправлять как в отдельном сообщении, так и в одном с командой, например:\n /{typeof(The7Wonders).Name.ToLower()} " + EXAMPLE_NAMES; }
-
 		public static TextMessage Shuffle(string messageText)
 		{
 			using StringReader stringReader = new(messageText);
@@ -50,7 +50,6 @@ namespace BGKutaisiBot.BotCommands
 			return GetTextMessage(names.ToArray());
 		}
 
-		public override bool IsLong => true;
 		public TextMessage Respond(string[] args)
 		{
 			this.IsCompleted = false;

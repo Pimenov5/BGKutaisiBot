@@ -1,10 +1,12 @@
-﻿using BGKutaisiBot.Types;
+﻿using BGKutaisiBot.Attributes;
+using BGKutaisiBot.Types;
 using BGKutaisiBot.Types.Exceptions;
 using BGKutaisiBot.Types.Logging;
 using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand(null, null)]
 	internal class Admin : BotForm
 	{
 		const byte LOGIN_TRIES_MAX_COUNT = 3;

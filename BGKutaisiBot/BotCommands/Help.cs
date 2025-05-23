@@ -1,9 +1,13 @@
 ﻿using BGKutaisiBot.Types;
 using System.Text;
 using BGKutaisiBot.Types.Exceptions;
+using BGKutaisiBot.Attributes;
+using System.Reflection;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand("Подробные инструкции для каждой команды",
+		"присылает список команд и их подробные инструкции. Можно указать имена конкретных команд без / через пробел, например: /help collection the7wonders")]
 	internal class Help : BotCommand
 	{
 		public static TextMessage Respond(string[] args)
@@ -13,7 +17,7 @@ namespace BGKutaisiBot.BotCommands
 
 			StringBuilder stringBuilder = new();
 			foreach (Type type in types)
-				if (type.GetProperty("Instruction", typeof(string)) is { } propertyInfo && propertyInfo.GetValue(null) is string help)
+				if (type.GetCustomAttribute<BotCommandAttribute>() is BotCommandAttribute attribute && attribute.Instruction is string help && !string.IsNullOrEmpty(help))
 					stringBuilder.AppendLine($"/{type.Name.ToLower()} {help}\n");
 
 			if (stringBuilder.Length == 0)
@@ -25,9 +29,5 @@ namespace BGKutaisiBot.BotCommands
 
 			return new TextMessage(stringBuilder.ToString().TrimEnd(), true);
 		}
-
-		public static string Description { get => "Подробные инструкции для каждой команды"; }
-		public static string Instruction { get => "присылает список команд и их подробные инструкции."
-			+ $" Можно указать имена конкретных команд без / через пробел, например:\n/{typeof(Help).Name.ToLower()} collection the7wonders"; }
 	}
 }
