@@ -90,7 +90,7 @@ namespace BGKutaisiBot.BotCommands
 			for (i = 0; i < values.Length; i++)
 				if (values[i] != sortBy)
 				{
-					string callbackData = BotCommand.GetCallbackData(typeof(Collection), "GetCollection", [userLogin, Enum.GetName(values[i])
+					string callbackData = BotCommand.GetCallbackData(typeof(Collection), nameof(Collection.GetCollection), [userLogin, Enum.GetName(values[i])
 						?? throw new NullReferenceException($"Не удалось получить имя для значения \"{values[i]}\" типа {typeof(SortBy).Name}")]);
 					buttons.Add(new InlineKeyboardButton(values[i] switch {
 						SortBy.Titles => "🔤", SortBy.Players => "👥", SortBy.Playtimes => "⏳", SortBy.Ratings => "⭐️" , _ => "?"
@@ -141,7 +141,7 @@ namespace BGKutaisiBot.BotCommands
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
 			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
-				{ CallbackData = GetCallbackData(typeof(Collection), "GetCollection", [logins[user.Login ?? string.Empty], "Titles"]) }));
+				{ CallbackData = GetCallbackData(typeof(Collection), nameof(Collection.GetCollection), [logins[user.Login ?? string.Empty], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
 		}

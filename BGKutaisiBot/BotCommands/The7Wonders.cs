@@ -28,7 +28,7 @@ namespace BGKutaisiBot.BotCommands
 				stringBuilder.AppendLine($"{names[i]}{NAMES_DELIMITER}{_wondersNames[i]}");
 
 			return new TextMessage(stringBuilder.ToString()) { ReplyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton(KEYBOARD_BUTTON_TEXT)
-				{ CallbackData = GetCallbackData(typeof(The7Wonders), "Shuffle") })
+				{ CallbackData = GetCallbackData(typeof(The7Wonders), nameof(The7Wonders.Shuffle)) })
 			};
 		}
 
