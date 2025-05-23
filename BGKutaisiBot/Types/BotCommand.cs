@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.RegularExpressions;
+using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.Types
 {
@@ -16,8 +17,15 @@ namespace BGKutaisiBot.Types
 		}
 
 		public virtual bool IsLong { get => false; }
-		public abstract TextMessage? Respond(string[] args);
-		public virtual TextMessage? Respond(long chatId, string[] args) => Respond(args);
+		
+		public virtual string[] GetArguments(Message message)
+		{
+			string[] args = string.IsNullOrEmpty(message.Text) ? [] : Command.Split(message.Text);
+			if (args.Length > 0 && args[0].StartsWith('/'))
+				args = args[1..];
+			return args;
+		}
+
 		public static bool TryParseCallbackData(string callbackData, out string? typeName, out string? methodName, out string[]? args)
 		{
 			int index = callbackData.IndexOf(CLASS_METHOD_DELIMITER);
