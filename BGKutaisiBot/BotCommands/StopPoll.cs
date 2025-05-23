@@ -11,11 +11,12 @@ namespace BGKutaisiBot.BotCommands
 		public override string[] GetArguments(Message message) => message.ReplyToMessage is Message replyToMessage && replyToMessage.Poll is Poll poll && !poll.IsClosed
 			? [replyToMessage.Chat.Id.ToString(), replyToMessage.MessageId.ToString()] : throw new ArgumentException("Команда должна вызываться в ответ на незакрытый опрос");
 
-		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string messageId)
+		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string messageId, CancellationToken cancellationToken)
 		{
-			await botClient.StopPollAsync(chatId, int.Parse(messageId));
+			await botClient.StopPollAsync(chatId, int.Parse(messageId), cancellationToken: cancellationToken);
 			Logs.Instance.Add($"Остановлен опрос в чате ID {chatId} в сообщении ID {messageId}");
 		}
+		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string messageId) => await RespondAsync(botClient, chatId, messageId, default);
 		public static async Task RespondAsync(ITelegramBotClient botClient, string[] args)
 		{
 			if (args.Length != 2)
