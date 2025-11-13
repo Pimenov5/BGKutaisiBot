@@ -12,7 +12,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.Types
 {
-    internal class TelegramUpdateHandler : IUpdateHandler
+	internal class TelegramUpdateHandler : IUpdateHandler
 	{
 		static readonly Dictionary<long, BotCommand> _chats = [];
 		static Type? GetTypeByName(string? typeName, bool ignoreCase = false)
@@ -80,6 +80,10 @@ namespace BGKutaisiBot.Types
 			if (message.Type == MessageType.ChatMemberLeft)
 				return;
 
+			string? botUsername = messageText.Contains('@') ? (await botClient.GetMeAsync(cancellationToken)).Username : null;
+			if (message.Chat.Type != ChatType.Private && (botUsername is null || !messageText.EndsWith('@' + botUsername)))
+				return;
+
 			long chatId = message.Chat.Id;
 			if (messageText == ROLL_DICE_KEYBOARD_TEXT)
 			{
@@ -91,6 +95,13 @@ namespace BGKutaisiBot.Types
 			if (messageText.StartsWith('/'))
 			{
 				string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
+				if (commandName.Contains('@')) 
+				{
+					botUsername ??= (await botClient.GetMeAsync(cancellationToken)).Username;
+					if (commandName.EndsWith('@' + botUsername))
+						commandName = commandName.Replace('@' + botUsername, string.Empty);
+				}
+
 				Type? type = GetTypeByName(commandName, true);
 				if (type is null || !type.IsSubclassOf(typeof(BotCommand)))
 				{
@@ -156,8 +167,18 @@ namespace BGKutaisiBot.Types
 						_ => throw new InvalidCastException($"Неизвестный тип результата: {result.GetType().Name}"),
 					};
 
-					if (result is Task task && !task.IsCompleted)
-						await task;
+					if (result is Task task) 
+					{
+						if (!task.IsCompleted)
+							await task;
+						if (task.Exception is AggregateException aggregateException)
+						{
+							if (aggregateException.InnerExceptions.Count == 1)
+								throw aggregateException.InnerExceptions[0];
+							else
+								throw aggregateException;
+						}
+					}
 				}
 				catch (Exception exception)
 				{
@@ -242,12 +263,14 @@ namespace BGKutaisiBot.Types
 							break;
 
 						if (message.Text is string messageText) {
-							if (message.Chat.Type is ChatType.Private)
+							if (message.Chat.Type is ChatType.Private || TelegramUpdateHandler.NotPrivateTextMessageEvent is null)
 								await HandleMessageAsync(botClient, message, messageText, cancellationToken);
 							else if (NotPrivateTextMessageEvent is not null)
 								await NotPrivateTextMessageEvent(typeof(TelegramUpdateHandler), botClient, message, messageText, cancellationToken);
-						} else if (message.Poll is Poll messagePoll && Admin.Contains(message.Chat.Id))
+						}
+						else if (message.Poll is Poll messagePoll && Admin.Contains(message.Chat.Id))
 							await HandleMessageWithPollAsync(botClient, message, messagePoll, cancellationToken);
+
 						break;
 
 					case UpdateType.CallbackQuery when update.CallbackQuery is CallbackQuery callbackQuery && callbackQuery.Data is string callbackData:
