@@ -2,6 +2,7 @@
 using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Tesera;
 using Tesera.Models;
 using Tesera.Types.Enums;
 using BGKutaisiBot.Attributes;
@@ -11,8 +12,6 @@ namespace BGKutaisiBot.Commands
 	[ConsoleCommand("Отправить опрос с играми из коллекции")]
 	internal class SendPoll
 	{
-		static readonly Lazy<HttpClient> _lazyHttpClient = new();
-
 		private protected struct Poll(string question, string[] options, IReplyMarkup? replyMarkup)
 		{
 			public readonly string Question = question;
@@ -22,15 +21,14 @@ namespace BGKutaisiBot.Commands
 
 		static private protected async Task<Poll> PreparePollAsync(int teseraCollectionId)
 		{
-			Tesera.TeseraClient teseraClient = new(_lazyHttpClient.Value);
-			CustomCollectionInfo collectionInfo = await teseraClient.GetAsync(new Tesera.API.Collections.Custom(teseraCollectionId))
+			CustomCollectionInfo collectionInfo = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Custom(teseraCollectionId))
 				?? throw new NullReferenceException($"Не удалось получить информацию о коллекции с ID #{teseraCollectionId}");
 			if (string.IsNullOrEmpty(collectionInfo.Title))
 				throw new NullReferenceException($"У коллекции c ID {teseraCollectionId} отсутствует название");
 			if (collectionInfo.GamesTotal <= 0)
 				throw new InvalidOperationException($"В коллекции \"{collectionInfo.Title}\" отсутствуют игры");
 
-			var collectionGames = await teseraClient.GetAsync(new Tesera.API.Collections.Custom.GamesClear(teseraCollectionId, GamesType.All, collectionInfo.GamesTotal))
+			var collectionGames = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Custom.GamesClear(teseraCollectionId, GamesType.All, collectionInfo.GamesTotal))
 				?? throw new NullReferenceException($"Не удалось получить список игр в коллекции \"{collectionInfo.Title}\"");
 
 			string[] options = new string[collectionInfo.GamesTotal];

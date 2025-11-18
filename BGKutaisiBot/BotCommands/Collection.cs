@@ -19,11 +19,10 @@ namespace BGKutaisiBot.BotCommands
 	internal class Collection : BotCommand
 	{
 		enum SortBy { Ratings, Playtimes, Players, Titles }
-		static readonly Lazy<TeseraClient> _lazyTeseraClient = new();
 
 		static async Task<TextMessage> GetTextMessageAsync(string userLogin, SortBy sortBy)
 		{
-			IEnumerable<CustomCollectionGameInfo> gamesInfo = await _lazyTeseraClient.Value.GetAsync(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
+			IEnumerable<CustomCollectionGameInfo> gamesInfo = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
 				?? throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
@@ -31,7 +30,7 @@ namespace BGKutaisiBot.BotCommands
 			{
 				await Parallel.ForEachAsync(gamesInfo, async (CustomCollectionGameInfo item, CancellationToken cancellationToken) =>
 				{
-					GameInfoResponse? game = string.IsNullOrEmpty(item.Game.Alias) ? null : await _lazyTeseraClient.Value.GetAsync(new Tesera.API.Games(item.Game.Alias));
+					GameInfoResponse? game = string.IsNullOrEmpty(item.Game.Alias) ? null : await TeseraClient.Instance.GetAsync(new Tesera.API.Games(item.Game.Alias));
 					if (game is not null)
 						collection.Add(game.Game, cancellationToken);
 					else
@@ -124,7 +123,7 @@ namespace BGKutaisiBot.BotCommands
 
 			List<UserFullInfo> users = [];
 			foreach (string login in logins.Keys)
-				if ((await _lazyTeseraClient.Value.GetAsync<UserFullInfoResponse>(new Tesera.API.User(login)))?.User is { } user)
+				if ((await TeseraClient.Instance.GetAsync<UserFullInfoResponse>(new Tesera.API.User(login)))?.User is { } user)
 					users.Add(user);
 
 			if (users.Count == 0)
@@ -140,7 +139,7 @@ namespace BGKutaisiBot.BotCommands
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
 			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
-				{ CallbackData = GetCallbackData(typeof(Collection), nameof(Collection.GetCollectionAsync), [logins[user.Login ?? string.Empty], "Titles"]) }));
+				{ CallbackData = BotCommand.GetCallbackData(typeof(Collection), nameof(Collection.GetCollectionAsync), [logins[user.Login ?? string.Empty], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };
 		}
