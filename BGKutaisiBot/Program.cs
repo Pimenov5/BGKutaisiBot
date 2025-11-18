@@ -15,6 +15,10 @@ namespace BGKutaisiBot
 			StartBot.OnBotStartedEvent += (Type type, ITelegramBotClient newBotClient) => botClient = newBotClient;
 			using CancellationTokenSource cancellationTokenSource = new();
 
+			using HttpClientHandler httpClientHandler = new() { ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => { return true; } };
+			using HttpClient httpClient = new(httpClientHandler);
+			Tesera.TeseraClient.Instance = new(httpClient);
+
 			async Task ExecuteCommand(string[] args)
 			{
 				if (args.Length == 0)
@@ -69,7 +73,7 @@ namespace BGKutaisiBot
 				{
 					parameters.Insert(0, botClient);
 					parameters.Add(cancellationTokenSource.Token);
-				}
+				}					
 
 				if (methodInfo.Invoke(null, [..parameters]) is Task task)
 					await task;
