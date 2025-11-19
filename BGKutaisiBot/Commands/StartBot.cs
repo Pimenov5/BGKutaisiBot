@@ -5,6 +5,7 @@ using System.Reflection;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.Commands
 {
@@ -23,13 +24,28 @@ namespace BGKutaisiBot.Commands
 			if (!await botClient.TestApiAsync(cancellationToken))
 				throw new ArgumentException($"Токен {botToken} бота не прошёл проверку API");
 
-			List<Telegram.Bot.Types.BotCommand> botCommands = [];
+			Dictionary<BotCommandScopeType, List<Telegram.Bot.Types.BotCommand>> botCommands = [];
 			IEnumerable<Type> types = typeof(StartBot).Assembly.GetTypes().Where((Type type) => type.IsSubclassOf(typeof(Types.BotCommand)));
 			foreach (Type type in types)
 				if (type.GetCustomAttribute<BotCommandAttribute>() is BotCommandAttribute attribute && !string.IsNullOrEmpty(attribute.Description))
-					botCommands.Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = attribute.Description });
+				{
+					if (!botCommands.ContainsKey(attribute.ScopeType))
+						botCommands.Add(attribute.ScopeType, []);
 
-			await botClient.SetMyCommandsAsync(botCommands);
+					botCommands[attribute.ScopeType].Add(new Telegram.Bot.Types.BotCommand() { Command = type.Name.ToLower(), Description = attribute.Description });
+				}
+
+			foreach (BotCommandScopeType key in  botCommands.Keys)
+				await botClient.SetMyCommandsAsync(botCommands[key], 
+					key switch
+					{
+						BotCommandScopeType.Default => BotCommandScope.Default(),
+						BotCommandScopeType.AllPrivateChats => BotCommandScope.AllPrivateChats(),
+						BotCommandScopeType.AllGroupChats => BotCommandScope.AllGroupChats(),
+						BotCommandScopeType.AllChatAdministrators => BotCommandScope.AllChatAdministrators(),
+						_ => throw new InvalidCastException("Не поддерживаемый тип области команды бота: " + key.ToString())
+					}, cancellationToken: cancellationToken);
+
 			botClient.StartReceiving(new TelegramUpdateHandler(), new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
 
 			User user = await botClient.GetMeAsync(cancellationToken);
