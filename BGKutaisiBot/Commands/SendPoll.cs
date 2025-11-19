@@ -12,14 +12,14 @@ namespace BGKutaisiBot.Commands
 	[ConsoleCommand("Отправить опрос с играми из коллекции")]
 	internal class SendPoll
 	{
-		private protected struct Poll(string question, string[] options, IReplyMarkup? replyMarkup)
+		public readonly struct Poll(string question, string[] options, IReplyMarkup? replyMarkup)
 		{
 			public readonly string Question = question;
 			public readonly string[] Options = options;
 			public readonly IReplyMarkup? ReplyMarkup = replyMarkup;
 		}
 
-		static private protected async Task<Poll> PreparePollAsync(int teseraCollectionId)
+		public static async Task<Poll> PreparePollAsync(int teseraCollectionId)
 		{
 			CustomCollectionInfo collectionInfo = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Custom(teseraCollectionId))
 				?? throw new NullReferenceException($"Не удалось получить информацию о коллекции с ID #{teseraCollectionId}");
