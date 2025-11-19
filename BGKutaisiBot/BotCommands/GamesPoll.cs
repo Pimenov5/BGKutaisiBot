@@ -8,7 +8,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.BotCommands
 {
-	[BotCommand("Опрос по играм из списка", null, (int)ChatAction.Typing)]
+	[BotCommand("Опрос по играм из списка", null, (int)ChatAction.Typing, BotCommandScopeType.AllChatAdministrators)]
 	internal class GamesPoll : Types.BotCommand
 	{
 		public override string[] GetArguments(Message message)
