@@ -44,7 +44,8 @@ namespace BGKutaisiBot.Commands
 						options[i++] = $"{item.Game.Title}{(string.IsNullOrEmpty(comment) ? "" : $" {comment}")}";
 			}
 
-			if (i < 2 || i > 10)
+			const uint POLL_OPTIONS_MAX = 12; // poll_answers_max
+			if (i < 2 || i > POLL_OPTIONS_MAX)
 				throw new InvalidOperationException($"Количество вариантов ответов из коллекции \"{collectionInfo.Title}\" равно {i}, но это количество не может быть меньше двух или больше десяти");
 
 			Array.Resize(ref options, i);
