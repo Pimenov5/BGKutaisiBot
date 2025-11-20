@@ -154,43 +154,30 @@ namespace BGKutaisiBot.Types
 					await botClient.SendChatActionAsync(chatId, (ChatAction)attribute.ChatAction, cancellationToken: cancellationToken);
 
 				TextMessage? response = null;
-				try
+				object? result = methodInfo.Invoke(command, [..parameters]);
+				response = result switch
 				{
-					object? result = methodInfo.Invoke(command, [..parameters]);
-					response = result switch
-					{
-						null => null,
-						TextMessage => (TextMessage)result,
-						string => new TextMessage((string)result),
-						Task<string> => new TextMessage(await (Task<string>)result),
-						Task<TextMessage> => await (Task<TextMessage>)result,
-						Task => null,
-						_ => throw new InvalidCastException($"Неизвестный тип результата: {result.GetType().Name}"),
-					};
+					null => null,
+					TextMessage => (TextMessage)result,
+					string => new TextMessage((string)result),
+					Task<string> => new TextMessage(await (Task<string>)result),
+					Task<TextMessage> => await (Task<TextMessage>)result,
+					Task => null,
+					_ => throw new InvalidCastException($"Неизвестный тип результата: {result.GetType().Name}"),
+				};
 
-					if (result is Task task) 
-					{
-						if (!task.IsCompleted)
-							await task;
-						if (task.Exception is AggregateException aggregateException)
-						{
-							if (aggregateException.InnerExceptions.Count == 1)
-								throw aggregateException.InnerExceptions[0];
-							else
-								throw aggregateException;
-						}
-					}
-				}
-				catch (Exception exception)
+				if (result is Task task) 
 				{
-					if (exception.InnerException is RollDiceException diceException)
+					if (!task.IsCompleted)
+						await task;
+					if (task.Exception is AggregateException aggregateException)
 					{
-						for (int i = 0; i < diceException.Count; i++)
-							await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+						if (aggregateException.InnerExceptions.Count == 1)
+							throw aggregateException.InnerExceptions[0];
+						else
+							throw aggregateException;
 					}
-					else
-						throw;
-				}
+				}				
 
 				if (command is BotForm botForm && botForm.IsCompleted)
 					_chats.Remove(chatId);
