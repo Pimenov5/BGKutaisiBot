@@ -1,13 +1,28 @@
 ﻿using BGKutaisiBot.Attributes;
 using BGKutaisiBot.Types;
-using BGKutaisiBot.Types.Exceptions;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace BGKutaisiBot.BotCommands
 {
 	[BotCommand("Бросить кубик D6", "определяет случайную цифру (1-6) с помощью шестигранного кубика. Можно указать число бросков, например: /dice 2")]
-	internal class Dice : BotCommand
+	internal class Dice : Types.BotCommand
 	{
-		public static TextMessage? Respond(string[] args) {
+		public override string[] GetArguments(Message message)
+		{
+			string[] result = base.GetArguments(message);
+			Array.Resize(ref result, result.Length + 1);
+			result[^1] = message.Chat.Id.ToString();
+			return result;
+		}
+
+		public static async Task<TextMessage?> RespondAsync(ITelegramBotClient botClient, string[] args) {
+			if (args.Length == 0)
+				throw new ArgumentException("Минимальное количество аргументов команды равно одному: идентификатор чата", nameof(args));
+			if (!long.TryParse(args[^1], out long chatId))
+				throw new InvalidCastException($"{chatId} не является идентификатором чата");
+
+			Array.Resize(ref args, args.Length - 1);
 			uint count;
 			switch (args.Length)
 			{
@@ -20,8 +35,13 @@ namespace BGKutaisiBot.BotCommands
 					return new TextMessage((args.Length == 1 ? $"\"{args[0]}\" не является числом бросков" : "Команда имеет только один параметр"));
 
 			}
-			throw new RollDiceException(count); 
+
+			for (int i = 0; i < count; i++)
+				await botClient.SendDiceAsync(chatId);
+
+			return null;
 		}
+
 		public static void Respond(string strCount)
 		{
 			if (uint.TryParse(strCount, out uint count))
