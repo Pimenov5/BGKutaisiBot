@@ -51,9 +51,9 @@ namespace BGKutaisiBot.BotCommands
 		public TextMessage? Respond(string[] args)
 		{
 			if (CommandCallback is null)
-				throw new CancelException(CancelException.Cancel.Current, "не инициализировано свойство CommandCallback");
+				throw new NullReferenceException("Не инициализировано свойство CommandCallback");
 			if (Environment.GetEnvironmentVariable("BOT_ADMIN_PASSWORD") is not string password)
-				throw new CancelException(CancelException.Cancel.Current, "в переменных окружения отсутствует пароль администратора");
+				throw new NullReferenceException("В переменных окружения отсутствует пароль администратора");
 
 			if (args.Length == 0 || !long.TryParse(args[0], out long chatId))
 				throw new ArgumentException("Первым аргументом команды должен быть ID пользователя", nameof(args));

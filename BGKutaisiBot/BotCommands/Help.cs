@@ -21,11 +21,11 @@ namespace BGKutaisiBot.BotCommands
 					stringBuilder.AppendLine($"/{type.Name.ToLower()} {help}\n");
 
 			if (stringBuilder.Length == 0)
-				throw new CancelException(CancelException.Cancel.Current, "не удалось найти команды или инструкции к ним" + args.Length switch
+				throw new ArgumentException("Не удалось найти команды или инструкции к ним" + args.Length switch
 				{
 					0 => string.Empty,
 					_ => " из списка: " + new StringBuilder(args.Length).AppendJoin(' ', args)
-				});
+				}, nameof(args));
 
 			return new TextMessage(stringBuilder.ToString().TrimEnd(), true);
 		}

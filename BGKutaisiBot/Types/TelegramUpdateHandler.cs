@@ -46,9 +46,10 @@ namespace BGKutaisiBot.Types
 					_ => response
 				};
 			}
-			catch (CancelException e)
+			catch (Exception e)
 			{
-				reason = e.Reason;
+				Logs.Instance.AddError(e);
+				reason = e.Message;
 			}
 
 			if (response is TextMessage textMessage)
@@ -71,7 +72,7 @@ namespace BGKutaisiBot.Types
 				if (type is null || methodInfo is null)
 					reason = "не удалось выделить или найти обработчик";
 				await botClient.AnswerCallbackQueryAsync(callbackQuery.Id,
-					$"Отсутствует результат нажатия \"{callbackData}\"{(reason is null ? string.Empty : ". Причина:" + reason)}", true, cancellationToken: cancellationToken);
+					$"Отсутствует результат нажатия \"{callbackData}\"{(reason is null ? string.Empty : ": " + reason)}", true, cancellationToken: cancellationToken);
 			}
 		}
 
@@ -182,23 +183,7 @@ namespace BGKutaisiBot.Types
 				}
 				catch (Exception exception)
 				{
-					if (exception.InnerException is CancelException e)
-					{
-						string? text = e.Cancelling switch
-						{
-							CancelException.Cancel.Previous when prevCommand is not null => $"Выполнение /{prevCommand.GetType().Name.ToLower()} отменено",
-							CancelException.Cancel.Current => $"Выполнение /{command.GetType().Name.ToLower()} отменено",
-							_ => null
-						};
-
-						if (!string.IsNullOrEmpty(text))
-						{
-							if (!string.IsNullOrEmpty(e.Reason))
-								text = $"{text}. Причина: {e.Reason}";
-							response = new(text, true);
-						}
-					}
-					else if (exception.InnerException is RollDiceException diceException)
+					if (exception.InnerException is RollDiceException diceException)
 					{
 						for (int i = 0; i < diceException.Count; i++)
 							await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
