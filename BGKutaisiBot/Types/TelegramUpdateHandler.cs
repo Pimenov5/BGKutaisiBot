@@ -65,7 +65,7 @@ namespace BGKutaisiBot.Types
 				}
 
 				textMessage.CancellationToken = cancellationToken;
-				await textMessage.SendTextMessageAsync(callbackQuery.From.Id, botClient);
+				await textMessage.SendTextMessageAsync(callbackQuery.Message?.Chat.Id ?? throw new NullReferenceException("Нет данных о сообщении, в котором нажата кнопка"), botClient);
 			}
 			else
 			{
