@@ -199,6 +199,12 @@ namespace BGKutaisiBot.Types
 					response.CancellationToken = cancellationToken;
 					await response.SendTextMessageAsync(chatId, botClient);
 				}
+
+				if ((message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup) 
+					&& Environment.GetEnvironmentVariable("DELETE_BOT_APPEAL_IN_GROUPS") is string strDeleteAppeal && bool.TryParse(strDeleteAppeal, out bool mustDeleteAppeal) && mustDeleteAppeal)
+				{
+					await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId, cancellationToken);
+				}
 			}
 			else
 				await new TextMessage("Не является командой или ответом на выполняемую команду") { ReplyToMessageId = message.MessageId, 
