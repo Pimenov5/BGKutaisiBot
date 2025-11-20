@@ -45,7 +45,7 @@ namespace BGKutaisiBot.BotCommands
 			}
 
 			if (names.Count == 0)
-				throw new CancelException(CancelException.Cancel.Current, "не удалось выделить имя игроков");
+				throw new ArgumentException("Не удалось выделить имя игроков", nameof(messageText));
 
 			return GetTextMessage(names.ToArray());
 		}

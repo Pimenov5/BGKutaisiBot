@@ -23,7 +23,7 @@ namespace BGKutaisiBot.BotCommands
 		static async Task<TextMessage> GetTextMessageAsync(string userLogin, SortBy sortBy)
 		{
 			IEnumerable<CustomCollectionGameInfo> gamesInfo = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Base(CollectionType.Own, userLogin, GamesType.SelfGame))
-				?? throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить список игр из коллекции пользователя {userLogin}");
+				?? throw new NullReferenceException($"Не удалось получить список игр из коллекции пользователя {userLogin}");
 
 			List<GameInfo> games = [];
 			using (BlockingCollection<GameInfo> collection = new(gamesInfo.Count()))
@@ -41,7 +41,7 @@ namespace BGKutaisiBot.BotCommands
 			}
 
 			if (games.Count == 0)
-				throw new CancelException(CancelException.Cancel.Current, $"Не удалось получить информацию об играх из коллекции пользователя {userLogin}");
+				throw new Exception($"Не удалось получить информацию об играх из коллекции пользователя {userLogin}");
 
 			games.Sort((GameInfo x, GameInfo y) =>
 			{
@@ -101,7 +101,7 @@ namespace BGKutaisiBot.BotCommands
 		public static async Task<TextMessage> GetCollectionAsync(string userLogin, string value)
 		{
 			if (!Enum.TryParse(typeof(SortBy), value, out object? result))
-				throw new CancelException(CancelException.Cancel.Current, $"не удалось выделить тип сортировки из \"{value}\"");
+				throw new InvalidCastException($"Не удалось выделить тип сортировки из \"{value}\"");
 
 			return await GetTextMessageAsync(userLogin, (SortBy)result);
 		}
@@ -119,7 +119,7 @@ namespace BGKutaisiBot.BotCommands
 					break;
 
 			if (logins.Count == 0)
-				throw new CancelException(CancelException.Cancel.Current, "в переменных среды отсутствуют логины пользователей Tesera.ru");
+				throw new Exception("В переменных среды отсутствуют логины пользователей Tesera.ru");
 
 			List<UserFullInfo> users = [];
 			foreach (string login in logins.Keys)
@@ -127,7 +127,7 @@ namespace BGKutaisiBot.BotCommands
 					users.Add(user);
 
 			if (users.Count == 0)
-				throw new CancelException(CancelException.Cancel.Current, "не удалось получить данные пользователей Tesera.ru");
+				throw new Exception("Не удалось получить данные пользователей Tesera.ru");
 
 			const string COLLECTION_URL_FORMAT = "tesera.ru/user/{0}/games/owns/";
 			string UserToString(UserFullInfo user) => $"[{logins[user.Login ?? string.Empty]}]({string.Format(COLLECTION_URL_FORMAT, logins[user.Login ?? string.Empty])}) \\({user.Name}\\)";
