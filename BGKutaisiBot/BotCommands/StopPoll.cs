@@ -2,9 +2,11 @@
 using BGKutaisiBot.Types.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace BGKutaisiBot.BotCommands
 {
+	[BotCommand("Остановить опрос", null, scopeType: BotCommandScopeType.AllChatAdministrators)]
 	internal class StopPoll : Types.BotCommand
 	{
 		public override string[] GetArguments(Message message) => message.ReplyToMessage is Message replyToMessage && replyToMessage.Poll is Poll poll && !poll.IsClosed && message.From?.Id is long userId
