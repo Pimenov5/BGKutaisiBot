@@ -77,7 +77,6 @@ namespace BGKutaisiBot.Types
 		}
 
 		static async Task HandleMessageAsync(ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken) {
-			Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
 			if (message.Type == MessageType.LeftChatMember)
 				return;
 
@@ -85,6 +84,7 @@ namespace BGKutaisiBot.Types
 			if (message.Chat.Type != ChatType.Private && (botUsername is null || !messageText.EndsWith('@' + botUsername)))
 				return;
 
+			Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
 			long chatId = message.Chat.Id;
 			if (messageText == ROLL_DICE_KEYBOARD_TEXT)
 			{
