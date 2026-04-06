@@ -7,9 +7,10 @@ using BGKutaisiBot.Types;
 
 namespace BGKutaisiBot
 {
-    internal class Program
+    public class Program
 	{
 		static async Task Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			ITelegramBotClient? botClient = null;
 			StartBot.OnBotStartedEvent += (Type type, ITelegramBotClient newBotClient) => botClient = newBotClient;
