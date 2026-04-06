@@ -9,15 +9,16 @@ namespace BGKutaisiBot
 {
     public class Program
 	{
-		static async Task Main(string[] args)
+		private static ITelegramBotClient? s_botClient;
+
 		public static async Task Main(string[] args)
 		{
 			ITelegramBotClient? botClient = null;
 			StartBot.OnBotStartedEvent += (Type type, ITelegramBotClient newBotClient) => botClient = newBotClient;
-			using CancellationTokenSource cancellationTokenSource = new();
+			CancellationTokenSource cancellationTokenSource = new();
 
-			using HttpClientHandler httpClientHandler = new() { ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => { return true; } };
-			using HttpClient httpClient = new(httpClientHandler);
+			HttpClientHandler httpClientHandler = new() { ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) => { return true; } };
+			HttpClient httpClient = new(httpClientHandler);
 			Tesera.TeseraClient.Instance = new(httpClient);
 
 			async Task ExecuteCommand(string[] args)
@@ -91,7 +92,13 @@ namespace BGKutaisiBot
 						start = false;
 						foreach (string commandLine in args)
 						{
-							Console.WriteLine(commandLine);
+							if (commandLine == WINDOWED_MODE)
+							{
+								s_botClient = botClient;
+								return;
+							}
+
+							Logs.Add(commandLine, true);
 							await ExecuteCommand(Command.Split(commandLine));
 						}
 					}
@@ -102,6 +109,15 @@ namespace BGKutaisiBot
 				catch (TargetInvocationException e) when (e.InnerException is ExitException) { break; }
 				catch (Exception e) { Logs.AddError(e); }
 			}
+
+			if (s_botClient is null)
+			{
+				httpClient.Dispose();
+				httpClientHandler.Dispose();
+				cancellationTokenSource.Dispose();
+			}
 		}
+
+		public const string WINDOWED_MODE = "windowed";
 	}
 }
