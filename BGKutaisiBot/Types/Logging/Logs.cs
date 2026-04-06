@@ -4,9 +4,12 @@
 	{
 		readonly static IList<Log> s_logs = [];
 
+		public static event Action<Log>? OnAdded;
+
 		public static void Add(Log log, bool writeConsole)
 		{
 			s_logs.Add(log);
+			OnAdded?.Invoke(log);
 			if (writeConsole)
 				Console.WriteLine(Truncator.Truncate(log.ToString()));
 		}
