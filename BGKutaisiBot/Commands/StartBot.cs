@@ -21,7 +21,7 @@ namespace BGKutaisiBot.Commands
 				throw new InvalidOperationException("Бот уже был запущен");
 
 			TelegramBotClient botClient = new(botToken);
-			if (!await botClient.TestApiAsync(cancellationToken))
+			if (!await botClient.TestApi(cancellationToken))
 				throw new ArgumentException($"Токен {botToken} бота не прошёл проверку API");
 
 			Dictionary<BotCommandScopeType, List<Telegram.Bot.Types.BotCommand>> botCommands = [];
@@ -36,7 +36,7 @@ namespace BGKutaisiBot.Commands
 				}
 
 			foreach (BotCommandScopeType key in  botCommands.Keys)
-				await botClient.SetMyCommandsAsync(botCommands[key], 
+				await botClient.SetMyCommands(botCommands[key], 
 					key switch
 					{
 						BotCommandScopeType.Default => BotCommandScope.Default(),
@@ -48,7 +48,7 @@ namespace BGKutaisiBot.Commands
 
 			botClient.StartReceiving(new TelegramUpdateHandler(), new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
 
-			User user = await botClient.GetMeAsync(cancellationToken);
+			User user = await botClient.GetMe(cancellationToken);
 			Logs.Instance.Add($"@{user.Username} запущен", true);
 			OnBotStartedEvent?.Invoke(typeof(StartBot), botClient);
 		}

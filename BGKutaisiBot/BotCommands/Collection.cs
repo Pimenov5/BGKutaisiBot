@@ -95,7 +95,7 @@ namespace BGKutaisiBot.BotCommands
 					}) { CallbackData = callbackData });
 				}
 
-			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
+			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), LinkPreviewOptions = true };
 		}
 
 		public static async Task<TextMessage> GetCollectionAsync(string userLogin, string value)
@@ -138,7 +138,7 @@ namespace BGKutaisiBot.BotCommands
 				_ => "коллекциях:" + string.Concat(users.ConvertAll<string>((UserFullInfo user) => " " + UserToString(user) + (user == users.Last() ? string.Empty : ",")))
 			} + "\\. Чью коллекцию вы хотите посмотреть?";
 
-			IReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
+			ReplyMarkup replyMarkup = new InlineKeyboardMarkup(users.ConvertAll<InlineKeyboardButton>((UserFullInfo user) => new InlineKeyboardButton(logins[user.Login ?? string.Empty] + $" ({user.Name})")
 				{ CallbackData = BotCommand.GetCallbackData(typeof(Collection), nameof(Collection.GetCollectionAsync), [logins[user.Login ?? string.Empty], "Titles"]) }));
 
 			return new TextMessage(text) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = replyMarkup };

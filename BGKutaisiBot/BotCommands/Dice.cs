@@ -37,7 +37,7 @@ namespace BGKutaisiBot.BotCommands
 			}
 
 			for (int i = 0; i < count; i++)
-				await botClient.SendDiceAsync(chatId);
+				await botClient.SendDice(chatId);
 
 			return null;
 		}

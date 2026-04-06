@@ -24,7 +24,7 @@ namespace BGKutaisiBot.Commands
 
 			string fileName = $"{Logs.Instance.First.DateTime.ToString("dd MMMM yyyy HH-mm")} — {(Logs.Instance.First.DateTime.Date == Logs.Instance.Last.DateTime.Date
 				? $"{Logs.Instance.Last.DateTime.ToString("HH-mm")}" : $"{Logs.Instance.Last.DateTime.ToString("dd MMMM yyyy HH-mm")}")}.txt";
-			Message message = await botClient.SendDocumentAsync(chatId, InputFile.FromStream(memoryStream, fileName), cancellationToken: cancellationToken);
+			Message message = await botClient.SendDocument(chatId, InputFile.FromStream(memoryStream, fileName), cancellationToken: cancellationToken);
 			Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}) с документом:  {fileName}");
 		}
 	}

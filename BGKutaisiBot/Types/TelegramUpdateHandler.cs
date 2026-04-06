@@ -24,7 +24,7 @@ namespace BGKutaisiBot.Types
 		async static Task HandleCallbackQueryAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, string callbackData, CancellationToken cancellationToken)
 		{
 			Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
-			await botClient.SendChatActionAsync(callbackQuery.From.Id, ChatAction.Typing, cancellationToken: cancellationToken);
+			await botClient.SendChatAction(callbackQuery.From.Id, ChatAction.Typing, cancellationToken: cancellationToken);
 
 			Type? type = BotCommand.TryParseCallbackData(callbackData, out string? typeName, out string? methodName, out string[]? args) ? GetTypeByName(typeName) : null;
 			MethodInfo? methodInfo = methodName is null ? null : type?.GetMethod(methodName);
@@ -56,7 +56,7 @@ namespace BGKutaisiBot.Types
 			{
 				try
 				{
-					await botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
+					await botClient.AnswerCallbackQuery(callbackQuery.Id, cancellationToken: cancellationToken);
 				}
 				catch (Exception e)
 				{
@@ -71,24 +71,24 @@ namespace BGKutaisiBot.Types
 			{
 				if (type is null || methodInfo is null)
 					reason = "не удалось выделить или найти обработчик";
-				await botClient.AnswerCallbackQueryAsync(callbackQuery.Id,
+				await botClient.AnswerCallbackQuery(callbackQuery.Id,
 					$"Отсутствует результат нажатия \"{callbackData}\"{(reason is null ? string.Empty : ": " + reason)}", true, cancellationToken: cancellationToken);
 			}
 		}
 
 		static async Task HandleMessageAsync(ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken) {
 			Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
-			if (message.Type == MessageType.ChatMemberLeft)
+			if (message.Type == MessageType.LeftChatMember)
 				return;
 
-			string? botUsername = messageText.Contains('@') ? (await botClient.GetMeAsync(cancellationToken)).Username : null;
+			string? botUsername = messageText.Contains('@') ? (await botClient.GetMe(cancellationToken)).Username : null;
 			if (message.Chat.Type != ChatType.Private && (botUsername is null || !messageText.EndsWith('@' + botUsername)))
 				return;
 
 			long chatId = message.Chat.Id;
 			if (messageText == ROLL_DICE_KEYBOARD_TEXT)
 			{
-				await botClient.SendDiceAsync(chatId, cancellationToken: cancellationToken);
+				await botClient.SendDice(chatId, cancellationToken: cancellationToken);
 				return;
 			}
 
@@ -98,7 +98,7 @@ namespace BGKutaisiBot.Types
 				string commandName = messageText[1..(messageText.Contains(' ') ? messageText.IndexOf(' ') : messageText.Length)];
 				if (commandName.Contains('@')) 
 				{
-					botUsername ??= (await botClient.GetMeAsync(cancellationToken)).Username;
+					botUsername ??= (await botClient.GetMe(cancellationToken)).Username;
 					if (commandName.EndsWith('@' + botUsername))
 						commandName = commandName.Replace('@' + botUsername, string.Empty);
 				}
@@ -106,7 +106,7 @@ namespace BGKutaisiBot.Types
 				Type? type = GetTypeByName(commandName, true);
 				if (type is null || !type.IsSubclassOf(typeof(BotCommand)))
 				{
-					await botClient.SendTextMessageAsync(chatId, $"\"{commandName}\" не является командой", cancellationToken: cancellationToken);
+					await botClient.SendMessage(chatId, $"\"{commandName}\" не является командой", cancellationToken: cancellationToken);
 					return;
 				}
 
@@ -151,7 +151,7 @@ namespace BGKutaisiBot.Types
 					throw new NullReferenceException($"Не удалось вызвать /{command.GetType().Name.ToLower()}");
 
 				if (command.GetType().GetCustomAttribute<BotCommandAttribute>() is BotCommandAttribute attribute && Enum.IsDefined(typeof(ChatAction), attribute.ChatAction))
-					await botClient.SendChatActionAsync(chatId, (ChatAction)attribute.ChatAction, cancellationToken: cancellationToken);
+					await botClient.SendChatAction(chatId, (ChatAction)attribute.ChatAction, cancellationToken: cancellationToken);
 
 				TextMessage? response = null;
 				object? result = methodInfo.Invoke(command, [..parameters]);
@@ -190,7 +190,7 @@ namespace BGKutaisiBot.Types
 				if ((message.Chat.Type == ChatType.Group || message.Chat.Type == ChatType.Supergroup) 
 					&& Environment.GetEnvironmentVariable("DELETE_BOT_APPEAL_IN_GROUPS") is string strDeleteAppeal && bool.TryParse(strDeleteAppeal, out bool mustDeleteAppeal) && mustDeleteAppeal)
 				{
-					await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId, cancellationToken);
+					await botClient.DeleteMessage(message.Chat.Id, message.MessageId, cancellationToken);
 				}
 			}
 			else
@@ -210,7 +210,7 @@ namespace BGKutaisiBot.Types
 			long chatId = message.Chat.Id;
 			if (options.Count == 0)
 			{
-				await botClient.SendTextMessageAsync(chatId, "В опросе ещё никто не проголосовал", cancellationToken: cancellationToken);
+				await botClient.SendMessage(chatId, "В опросе ещё никто не проголосовал", cancellationToken: cancellationToken);
 				return;
 			}
 			
@@ -265,7 +265,7 @@ namespace BGKutaisiBot.Types
 				Logs.Instance.AddError(e);
 			}
 		}
-		public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
 		{
 			Logs.Instance.AddError(exception);
 			return Task.CompletedTask;

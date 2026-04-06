@@ -12,11 +12,11 @@ namespace BGKutaisiBot.Commands
 	[ConsoleCommand("Отправить опрос с играми из коллекции")]
 	internal class SendPoll
 	{
-		public readonly struct Poll(string question, string[] options, IReplyMarkup? replyMarkup)
+		public readonly struct Poll(string question, string[] options, ReplyMarkup? replyMarkup)
 		{
 			public readonly string Question = question;
-			public readonly string[] Options = options;
-			public readonly IReplyMarkup? ReplyMarkup = replyMarkup;
+			public readonly InputPollOption[] Options = [..options];
+			public readonly ReplyMarkup? ReplyMarkup = replyMarkup;
 		}
 
 		public static async Task<Poll> PreparePollAsync(int teseraCollectionId)
@@ -49,7 +49,7 @@ namespace BGKutaisiBot.Commands
 				throw new InvalidOperationException($"Количество вариантов ответов из коллекции \"{collectionInfo.Title}\" равно {i}, но это количество не может быть меньше двух или больше десяти");
 
 			Array.Resize(ref options, i);
-			IReplyMarkup? replyMarkup = null;
+			ReplyMarkup? replyMarkup = null;
 			if (Environment.GetEnvironmentVariable("POLL_COLLECTION_USER_ID") is string collectionUserId && int.TryParse(collectionUserId, out int userId))
 				replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton("Игры из опроса на сайте Tesera.ru") { Url = $"tesera.ru/user/{userId}/lists/{teseraCollectionId}" });
 
@@ -60,7 +60,7 @@ namespace BGKutaisiBot.Commands
 		{
 			Poll poll = await PreparePollAsync(int.Parse(pollCollectionId));
 
-			Message pollMessage = await botClient.SendPollAsync(chatId, poll.Question, poll.Options, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken)
+			Message pollMessage = await botClient.SendPoll(chatId, poll.Question, poll.Options, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken)
 				?? throw new NullReferenceException($"Не удалось отправить в чат {chatId} опрос \"{poll.Question}\"");
 			Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {poll.Question}");
 		}
