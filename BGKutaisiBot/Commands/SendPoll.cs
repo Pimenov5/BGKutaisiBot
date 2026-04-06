@@ -60,7 +60,7 @@ namespace BGKutaisiBot.Commands
 		{
 			Poll poll = await PreparePollAsync(int.Parse(pollCollectionId));
 
-			Message pollMessage = await botClient.SendPollAsync(chatId, poll.Question, poll.Options, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken)
+			Message pollMessage = await botClient.SendPoll(chatId, poll.Question, poll.Options, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken)
 				?? throw new NullReferenceException($"Не удалось отправить в чат {chatId} опрос \"{poll.Question}\"");
 			Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {poll.Question}");
 		}

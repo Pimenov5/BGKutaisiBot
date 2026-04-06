@@ -37,7 +37,7 @@ namespace BGKutaisiBot.BotCommands
 
 			SendPoll.Poll poll = await SendPoll.PreparePollAsync(teseraCollectionId);
 
-			Message pollMessage = await botClient.SendPollAsync(chatId, poll.Question, poll.Options, 
+			Message pollMessage = await botClient.SendPoll(chatId, poll.Question, poll.Options, 
 				isAnonymous: false, type: PollType.Regular, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup);
 			Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {poll.Question}");
 		}

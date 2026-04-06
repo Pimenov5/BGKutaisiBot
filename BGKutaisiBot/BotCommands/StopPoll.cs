@@ -12,7 +12,7 @@ namespace BGKutaisiBot.BotCommands
 
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string messageId, CancellationToken cancellationToken)
 		{
-			await botClient.StopPollAsync(chatId, int.Parse(messageId), cancellationToken: cancellationToken);
+			await botClient.StopPoll(chatId, int.Parse(messageId), cancellationToken: cancellationToken);
 			Logs.Instance.Add($"Остановлен опрос в чате ID {chatId} в сообщении ID {messageId}");
 		}
 		public static async Task RespondAsync(ITelegramBotClient botClient, string userId, string chatId, string messageId)
