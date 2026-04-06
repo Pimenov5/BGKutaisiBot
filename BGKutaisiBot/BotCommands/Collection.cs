@@ -34,7 +34,7 @@ namespace BGKutaisiBot.BotCommands
 					if (game is not null)
 						collection.Add(game.Game, cancellationToken);
 					else
-						Logs.Instance.Add("Не удалось получить информацию об игре " + item.Game.Alias ?? item.Game.Id.ToString());
+						Logs.Add("Не удалось получить информацию об игре " + item.Game.Alias ?? item.Game.Id.ToString());
 				});
 
 				games.AddRange(collection);

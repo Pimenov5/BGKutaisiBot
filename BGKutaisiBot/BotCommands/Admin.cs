@@ -17,13 +17,13 @@ namespace BGKutaisiBot.BotCommands
 		static bool AddAdmin(long userId) {
 			if (Contains(userId))
 			{
-				Logs.Instance.Add($"Идентификатор \"{userId}\" уже существует в списке администраторов");
+				Logs.Add($"Идентификатор \"{userId}\" уже существует в списке администраторов");
 				return false;
 			}
 			else
 			{
 				_admins.Add(userId);
-				Logs.Instance.Add($"Идентификатор \"{userId}\" добавлен в список администраторов");
+				Logs.Add($"Идентификатор \"{userId}\" добавлен в список администраторов");
 				return true;
 			}
 		}
@@ -33,12 +33,12 @@ namespace BGKutaisiBot.BotCommands
 			if (Contains(userId))
 			{
 				_admins.Remove(userId);
-				Logs.Instance.Add($"Идентификатор \"{userId}\" удалён из списка администраторов");
+				Logs.Add($"Идентификатор \"{userId}\" удалён из списка администраторов");
 				return true;
 			}
 			else
 			{
-				Logs.Instance.Add($"Идентификатор \"{userId}\" не существует в списке администраторов");
+				Logs.Add($"Идентификатор \"{userId}\" не существует в списке администраторов");
 				return false;
 			}
 		}

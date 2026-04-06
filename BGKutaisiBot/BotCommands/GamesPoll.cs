@@ -39,7 +39,7 @@ namespace BGKutaisiBot.BotCommands
 
 			Message pollMessage = await botClient.SendPoll(chatId, poll.Question, poll.Options, 
 				isAnonymous: false, type: PollType.Regular, allowsMultipleAnswers: true, replyMarkup: poll.ReplyMarkup);
-			Logs.Instance.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {poll.Question}");
+			Logs.Add($"@{pollMessage.Chat.Username} получил сообщение (ID {pollMessage.MessageId}) с опросом: {poll.Question}");
 		}
 	}
 }

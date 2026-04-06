@@ -99,7 +99,7 @@ namespace BGKutaisiBot
 					await ExecuteCommand(Command.Split(line ?? string.Empty));
 				}
 				catch (TargetInvocationException e) when (e.InnerException is ExitException) { break; }
-				catch (Exception e) { Logs.Instance.AddError(e); }
+				catch (Exception e) { Logs.AddError(e); }
 			}
 		}
 	}

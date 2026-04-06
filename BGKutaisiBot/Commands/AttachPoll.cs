@@ -26,7 +26,7 @@ namespace BGKutaisiBot.Commands
 				TelegramUpdateHandler.NotPrivateTextMessageEvent -= HandleNotPrivateTextMessage;
 				Message pollMessage = await botClient.SendPoll(message.Chat.Id, poll.Question, poll.Options, isAnonymous: false, allowsMultipleAnswers: true, replyParameters: message.MessageId,
 					replyMarkup: poll.ReplyMarkup, cancellationToken: cancellationToken) ?? throw new NullReferenceException($"Не удалось отправить в {message.Chat.Id} опрос \"{poll.Question}\"");
-				Logs.Instance.Add($"{(pollMessage.Chat.Username is null ? $"ID {pollMessage.Chat.Id}" : $"@{pollMessage.Chat.Username}")} получил сообщение ID {pollMessage.MessageId} c опросом \"{poll.Question}\"");
+				Logs.Add($"{(pollMessage.Chat.Username is null ? $"ID {pollMessage.Chat.Id}" : $"@{pollMessage.Chat.Username}")} получил сообщение ID {pollMessage.MessageId} c опросом \"{poll.Question}\"");
 			}
 
 			TelegramUpdateHandler.NotPrivateTextMessageEvent += HandleNotPrivateTextMessage;

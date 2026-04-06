@@ -31,7 +31,7 @@ namespace BGKutaisiBot.Types
 				this.Entities, this.DisableNotification, this.ProtectContent, cancellationToken: this.CancellationToken) 
 				?? throw new NullReferenceException($"Не удалось отправить {chatId} сообщение {this}");
 
-			Logs.Instance.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}):  {this}");
+			Logs.Add($"@{message.Chat.Username} получил сообщение (ID {message.MessageId}):  {this}");
 			return message;
 		}
 		public override string ToString() => Truncator.Truncate(this.Text, replaceLineBreak: false);

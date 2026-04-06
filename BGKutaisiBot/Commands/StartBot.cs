@@ -49,7 +49,7 @@ namespace BGKutaisiBot.Commands
 			botClient.StartReceiving(new TelegramUpdateHandler(), new ReceiverOptions { AllowedUpdates = [] }, cancellationToken);
 
 			User user = await botClient.GetMe(cancellationToken);
-			Logs.Instance.Add($"@{user.Username} запущен", true);
+			Logs.Add($"@{user.Username} запущен", true);
 			OnBotStartedEvent?.Invoke(typeof(StartBot), botClient);
 		}
 		public static async Task RespondAsync(ITelegramBotClient? botClient, CancellationToken cancellationToken)

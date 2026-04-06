@@ -23,7 +23,7 @@ namespace BGKutaisiBot.Types
 
 		async static Task HandleCallbackQueryAsync(ITelegramBotClient botClient, CallbackQuery callbackQuery, string callbackData, CancellationToken cancellationToken)
 		{
-			Logs.Instance.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
+			Logs.Add($"@{callbackQuery.From.Username} нажал \"{callbackQuery.Data}\" в сообщении с ID {callbackQuery.Message?.MessageId}", System.Diagnostics.Debugger.IsAttached);
 			await botClient.SendChatAction(callbackQuery.From.Id, ChatAction.Typing, cancellationToken: cancellationToken);
 
 			Type? type = BotCommand.TryParseCallbackData(callbackData, out string? typeName, out string? methodName, out string[]? args) ? GetTypeByName(typeName) : null;
@@ -48,7 +48,7 @@ namespace BGKutaisiBot.Types
 			}
 			catch (Exception e)
 			{
-				Logs.Instance.AddError(e);
+				Logs.AddError(e);
 				reason = e.Message;
 			}
 
@@ -84,7 +84,7 @@ namespace BGKutaisiBot.Types
 			if (message.Chat.Type != ChatType.Private && (botUsername is null || !messageText.EndsWith('@' + botUsername)))
 				return;
 
-			Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
+			Logs.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
 			long chatId = message.Chat.Id;
 			if (messageText == ROLL_DICE_KEYBOARD_TEXT)
 			{
@@ -200,7 +200,7 @@ namespace BGKutaisiBot.Types
 
 		static async Task HandleMessageWithPollAsync(ITelegramBotClient botClient, Message message, Poll poll, CancellationToken cancellationToken)
 		{
-			Logs.Instance.Add($"@{message.From?.Username}: [{poll.Question}]");
+			Logs.Add($"@{message.From?.Username}: [{poll.Question}]");
 
 			Dictionary<string, int> options = [];
 			foreach (var item in poll.Options)
@@ -278,18 +278,18 @@ namespace BGKutaisiBot.Types
 						break;
 
 					default:
-						Logs.Instance.Add(update.Type.ToString());
+						Logs.Add(update.Type.ToString());
 						break;
 				}
 			}
 			catch (Exception e)
 			{
-				Logs.Instance.AddError(e);
+				Logs.AddError(e);
 			}
 		}
 		public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
 		{
-			Logs.Instance.AddError(exception);
+			Logs.AddError(exception);
 			return Task.CompletedTask;
 		}
 	}
