@@ -223,6 +223,20 @@ namespace BGKutaisiBot.Types
 			await new TextMessage(stringBuilder.ToString()) { CancellationToken = cancellationToken }.SendTextMessageAsync(chatId, botClient);
 		}
 
+		private static async Task HandlePollAnswerAsync(ITelegramBotClient botClient, PollAnswer pollAnswer, string chatId, CancellationToken cancellationToken)
+		{
+			TextMessage textMessage = new($"[{pollAnswer.User.FirstName}](tg://user?id={pollAnswer.User.Id})" + (pollAnswer.OptionIds.Length > 0 ?
+				$" ответил на опрос: " + new StringBuilder().AppendJoin(", ", pollAnswer.OptionIds).ToString() : " отменил голос в опросе")) 
+				{ ParseMode = ParseMode.Markdown, CancellationToken = cancellationToken };
+			await textMessage.SendTextMessageAsync(chatId, botClient);
+		}
+
+		private static async Task HandlePollAsync(ITelegramBotClient botClient, Poll poll, string chatId, CancellationToken cancellationToken)
+		{
+			TextMessage textMessage = new($"Ответов в опросе \"{poll.Question}\": {poll.TotalVoterCount}") { CancellationToken = cancellationToken };
+			await textMessage.SendTextMessageAsync(chatId, botClient);
+		}
+
 		public static string ROLL_DICE_KEYBOARD_TEXT = "🎲";
 
 		public delegate Task NotPrivateTextMessageHandler(Type type, ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken);
@@ -253,6 +267,14 @@ namespace BGKutaisiBot.Types
 
 					case UpdateType.CallbackQuery when update.CallbackQuery is CallbackQuery callbackQuery && callbackQuery.Data is string callbackData:
 						await HandleCallbackQueryAsync(botClient, callbackQuery, callbackData, cancellationToken);
+						break;
+
+					case UpdateType.Poll when update.Poll is Poll poll && Environment.GetEnvironmentVariable("POLL_ANSWER_SUBSCRIBED_CHAT_ID") is string pollChatId:
+						await HandlePollAsync(botClient, poll, pollChatId, cancellationToken);
+						break;
+
+					case UpdateType.PollAnswer when update.PollAnswer is PollAnswer pollAnswer && Environment.GetEnvironmentVariable("POLL_ANSWER_SUBSCRIBED_CHAT_ID") is string pollAnswerChatID:
+						await HandlePollAnswerAsync(botClient, pollAnswer, pollAnswerChatID, cancellationToken);
 						break;
 
 					default:
