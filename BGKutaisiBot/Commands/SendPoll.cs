@@ -15,7 +15,7 @@ namespace BGKutaisiBot.Commands
 		public readonly struct Poll(string question, string[] options, ReplyMarkup? replyMarkup)
 		{
 			public readonly string Question = question;
-			public readonly string[] Options = options;
+			public readonly InputPollOption[] Options = [..options];
 			public readonly ReplyMarkup? ReplyMarkup = replyMarkup;
 		}
 
