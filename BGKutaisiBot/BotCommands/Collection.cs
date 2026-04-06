@@ -95,7 +95,7 @@ namespace BGKutaisiBot.BotCommands
 					}) { CallbackData = callbackData });
 				}
 
-			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), DisableWebPagePreview = true };
+			return new TextMessage(stringBuilder.ToString()) { ParseMode = ParseMode.MarkdownV2, ReplyMarkup = new InlineKeyboardMarkup(buttons), LinkPreviewOptions = true };
 		}
 
 		public static async Task<TextMessage> GetCollectionAsync(string userLogin, string value)
