@@ -265,7 +265,7 @@ namespace BGKutaisiBot.Types
 				Logs.Instance.AddError(e);
 			}
 		}
-		public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+		public Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource source, CancellationToken cancellationToken)
 		{
 			Logs.Instance.AddError(exception);
 			return Task.CompletedTask;
