@@ -1,6 +1,6 @@
 ﻿namespace BGKutaisiBot.Types.Logging
 {
-	internal class Log
+	public class Log
 	{
 		public readonly DateTime DateTime;
 		public readonly string Text;

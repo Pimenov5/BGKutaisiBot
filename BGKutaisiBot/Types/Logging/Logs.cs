@@ -1,6 +1,6 @@
 ﻿namespace BGKutaisiBot.Types.Logging
 {
-	internal static class Logs
+	public static class Logs
 	{
 		readonly static IList<Log> s_logs = [];
 
