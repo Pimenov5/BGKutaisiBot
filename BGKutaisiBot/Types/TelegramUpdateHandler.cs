@@ -78,7 +78,7 @@ namespace BGKutaisiBot.Types
 
 		static async Task HandleMessageAsync(ITelegramBotClient botClient, Message message, string messageText, CancellationToken cancellationToken) {
 			Logs.Instance.Add($"@{message.From?.Username}: {(message.Text ?? $"[{message.Type}]")}");
-			if (message.Type == MessageType.ChatMemberLeft)
+			if (message.Type == MessageType.LeftChatMember)
 				return;
 
 			string? botUsername = messageText.Contains('@') ? (await botClient.GetMe(cancellationToken)).Username : null;
