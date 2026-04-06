@@ -18,7 +18,7 @@ namespace BGKutaisiBot.Types
 		public bool? ProtectContent = null;
 		public int? ReplyToMessageId = null;
 		public bool? AllowSendingWithoutReply = null;
-		public IReplyMarkup? ReplyMarkup = null;
+		public ReplyMarkup? ReplyMarkup = null;
 		public CancellationToken CancellationToken = default;
 
 		public async Task<Message> SendTextMessageAsync(ChatId chatId, ITelegramBotClient botClient)
