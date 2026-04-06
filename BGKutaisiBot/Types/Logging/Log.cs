@@ -1,21 +1,15 @@
 ﻿namespace BGKutaisiBot.Types.Logging
 {
-	public class Log
+	public class Log(string text)
 	{
-		public readonly DateTime DateTime;
-		public readonly string Text;
-		public Log(string text)
-		{
-			this.DateTime = DateTime.Now;
-			this.Text = text;
-		}
+		public readonly DateTime DateTime = DateTime.Now;
+		public readonly string Text = text;
 		public override string ToString() => $"{this.DateTime.ToShortTimeString()} {this.Text}";
 	}
 
-	internal class ErrorLog : Log
+	internal class ErrorLog(Exception ex) : Log(ex.Message)
 	{
-		public readonly string ExceptionFullName;
-		public ErrorLog(Exception e) : base(e.Message) => this.ExceptionFullName = e.GetType().FullName ?? "?";
+		public readonly string ExceptionFullName = ex.GetType().FullName ?? "?";
 		public override string ToString() => $"[{this.ExceptionFullName}] {base.ToString()}";
 	}
 }
