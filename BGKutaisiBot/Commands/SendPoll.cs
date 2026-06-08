@@ -12,14 +12,7 @@ namespace BGKutaisiBot.Commands
 	[ConsoleCommand("Отправить опрос с играми из коллекции")]
 	internal class SendPoll
 	{
-		public readonly struct Poll(string question, string[] options, ReplyMarkup? replyMarkup)
-		{
-			public readonly string Question = question;
-			public readonly InputPollOption[] Options = [..options];
-			public readonly ReplyMarkup? ReplyMarkup = replyMarkup;
-		}
-
-		public static async Task<Poll> PreparePollAsync(int teseraCollectionId)
+		private static async Task<Poll> CreatePollFromTeseraAsync(int teseraCollectionId)
 		{
 			CustomCollectionInfo collectionInfo = await TeseraClient.Instance.GetAsync(new Tesera.API.Collections.Custom(teseraCollectionId))
 				?? throw new NullReferenceException($"Не удалось получить информацию о коллекции с ID #{teseraCollectionId}");
@@ -33,10 +26,10 @@ namespace BGKutaisiBot.Commands
 
 			string[] options = new string[collectionInfo.GamesTotal];
 			int i = 0;
+			string? ignoreChar = Environment.GetEnvironmentVariable("POLL_IGNORE_CHAR");
 			foreach (CustomCollectionGameInfo item in collectionGames)
 			{
 				string comment = string.IsNullOrEmpty(item.Comment) ? string.Empty : item.Comment;
-				string? ignoreChar = Environment.GetEnvironmentVariable("POLL_IGNORE_CHAR");
 				if (string.IsNullOrEmpty(comment) || ignoreChar is not null && !comment.StartsWith(ignoreChar))
 					if (string.IsNullOrEmpty(item.Game.Title))
 						throw new NullReferenceException($"Не удалось получить имя игры {item.Game.TeseraId}");
@@ -44,8 +37,7 @@ namespace BGKutaisiBot.Commands
 						options[i++] = $"{item.Game.Title}{(string.IsNullOrEmpty(comment) ? "" : $" {comment}")}";
 			}
 
-			const uint POLL_OPTIONS_MAX = 12; // poll_answers_max
-			if (i < 2 || i > POLL_OPTIONS_MAX)
+			if (i < 2 || i > Poll.OPTIONS_MAX)
 				throw new InvalidOperationException($"Количество вариантов ответов из коллекции \"{collectionInfo.Title}\" равно {i}, но это количество не может быть меньше двух или больше десяти");
 
 			Array.Resize(ref options, i);
@@ -54,6 +46,42 @@ namespace BGKutaisiBot.Commands
 				replyMarkup = new InlineKeyboardMarkup(new InlineKeyboardButton("Игры из опроса на сайте Tesera.ru") { Url = $"tesera.ru/user/{userId}/lists/{teseraCollectionId}" });
 
 			return new(collectionInfo.Title, options, replyMarkup);
+		}
+
+		public readonly struct Poll(string question, string[] options, ReplyMarkup? replyMarkup)
+		{
+			public const int OPTIONS_MAX = 12; // poll_answers_max
+
+			public readonly string Question = question;
+			public readonly InputPollOption[] Options = options.Length >= 2 && options.Length <= OPTIONS_MAX ? [..options] 
+				: throw new ArgumentException($"Количество вариантов ответов для опроса должно быть от 2 до {Poll.OPTIONS_MAX}, а не {options.Length}", nameof(options));
+			public readonly ReplyMarkup? ReplyMarkup = replyMarkup;
+		}
+
+		public static async Task<Poll> PreparePollAsync(int teseraCollectionId, string question = "Во что играем сегодня?")
+		{
+			try
+			{
+				Poll poll = await SendPoll.CreatePollFromTeseraAsync(teseraCollectionId);
+				return poll;
+			}
+			catch (Exception e)
+			{
+				Logs.AddError(e);
+			}
+
+			const string SEND_POLL_OPTIONS = "SEND_POLL_OPTIONS";
+			if (Environment.GetEnvironmentVariable(SEND_POLL_OPTIONS) is not string optionsStr || optionsStr.Split(';') is not string[] options || options.Length <= 1)
+				throw new Exception($"В переменных окружения отсутствует валидное значение {SEND_POLL_OPTIONS}");
+
+			int index = 0;
+			string? ignoreChar = Environment.GetEnvironmentVariable("POLL_IGNORE_CHAR");
+			foreach (string item in options)
+				if (string.IsNullOrEmpty(ignoreChar) || !item.StartsWith(ignoreChar))
+					options[index++] = item;
+
+			Array.Resize(ref options, index + 1);
+			return new(question, options, null);
 		}
 
 		public static async Task RespondAsync(ITelegramBotClient botClient, string chatId, string pollCollectionId, CancellationToken cancellationToken)
